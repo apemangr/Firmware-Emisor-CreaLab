@@ -60,14 +60,8 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="17" y="50" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="0" top="26" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="39" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/boards/boards.c" selected="0" top="15" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="98" useTextEdit="1" openedFrom="Y:/Unidades compartidas/11 - CREALAB - Proyectos/00_Firmware/nRF5_SDK_17.1.0_ddde560/components/boards/boards.c" useBinaryEdit="0" left="0" path="../../../../../../components/boards/boards.h" selected="0" top="66" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="70" useTextEdit="1" openedFrom="Y:/Unidades compartidas/11 - CREALAB - Proyectos/00_Firmware/nRF5_SDK_17.1.0_ddde560/01_Firm/11_smartWear_V0.88_Segger_nrf52832_PA factory_time/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../../../../components/boards/pca10040_PERNO_V2.h" selected="0" top="39" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="97" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="58" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" openedFrom="Y:/Unidades compartidas/11 - CREALAB - Proyectos/00_Firmware/nRF5_SDK_17.1.0_ddde560/01_Firm/11_smartWear_V0.88_Segger_nrf52832_PA factory_time/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Common/common.h" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="665" useTextEdit="1" openedFrom="Y:/Unidades compartidas/11 - CREALAB - Proyectos/00_Firmware/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/11_smartWear_V0.88_Segger_nrf52832_PA factory_time/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Antena/Antena.h" selected="0" top="647" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="24" useTextEdit="1" openedFrom="Y:/Unidades compartidas/11 - CREALAB - Proyectos/00_Firmware/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/11_smartWear_V0.88_Segger_nrf52832_PA factory_time/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Flash_Storage/FSstorage.h" selected="1" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="49" y="117" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="98" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="600" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../Include/Antena/Antena.h" selected="0" top="569" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_uart_pca10040_s132" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
+ <ARMCrossStudioWindow activeProject="ble_app_uart_pca10040_s132" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

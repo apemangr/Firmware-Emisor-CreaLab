@@ -33,21 +33,25 @@ NRF_BLE_GATT_DEF(m_gatt);                         /**< GATT module instance. */
 NRF_BLE_QWR_DEF(m_qwr);                           /**< Context for the Queued Write module.*/
 BLE_ADVERTISING_DEF(m_advertising);               /**< Advertising module instance. */
 
+uint16_t Requested_History_Index = 0xFFFF;
+
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;               /**< Handle of the current connection. */
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 
 /**@brief Function for handling Queued Write Module errors.
-*
-* @details A pointer to this function will be passed to each service which may need to inform the
-*          application about an error.
-*
-* @param[in]   nrf_error   Error code containing information about what went wrong.
-*/
-static void nrf_qwr_error_handler(uint32_t nrf_error) {
+ *
+ * @details A pointer to this function will be passed to each service which may need to inform the
+ *          application about an error.
+ *
+ * @param[in]   nrf_error   Error code containing information about what went wrong.
+ */
+static void nrf_qwr_error_handler(uint32_t nrf_error)
+{
   APP_ERROR_HANDLER(nrf_error);
 }
 
-void disabled_uart(void) {
+void disabled_uart(void)
+{
   uint32_t err_code = app_uart_close();
   NRF_UARTE0->TASKS_STOPTX = 1;
   NRF_UARTE0->TASKS_STOPRX = 1;
@@ -57,7 +61,8 @@ void disabled_uart(void) {
   *(volatile uint32_t *)0x40002FFC = 1; /* Power on UARTE0 so it is ready for next time */
 }
 
-void pa_assist(uint32_t gpio_pa_pin, uint32_t gpio_lna_pin) {
+void pa_assist(uint32_t gpio_pa_pin, uint32_t gpio_lna_pin)
+{
   ret_code_t err_code;
   static const uint32_t gpio_toggle_ch = 0;
   static const uint32_t ppi_set_ch = 0;
@@ -81,11 +86,12 @@ void pa_assist(uint32_t gpio_pa_pin, uint32_t gpio_lna_pin) {
 }
 
 /**@brief Function for the GAP initialization.
-*
-* @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
-*          the device. It also sets the permissions and appearance.
-*/
-static void gap_params_init(void) {
+ *
+ * @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
+ *          the device. It also sets the permissions and appearance.
+ */
+static void gap_params_init(void)
+{
   uint32_t err_code;
   ble_gap_conn_params_t gap_conn_params;
 
@@ -94,8 +100,8 @@ static void gap_params_init(void) {
   BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
   err_code = sd_ble_gap_device_name_set(&sec_mode,
-      (const uint8_t *)DEVICE_NAME,
-      strlen(DEVICE_NAME));
+                                        (const uint8_t *)DEVICE_NAME,
+                                        strlen(DEVICE_NAME));
   APP_ERROR_CHECK(err_code);
 
   memset(&gap_conn_params, 0, sizeof(gap_conn_params));
@@ -109,16 +115,19 @@ static void gap_params_init(void) {
   APP_ERROR_CHECK(err_code);
 }
 
-void send_data_Nus(uint16_t length, uint8_t data_array[BLE_NUS_MAX_DATA_LEN]) {
+void send_data_Nus(uint16_t length, uint8_t data_array[BLE_NUS_MAX_DATA_LEN])
+{
   uint32_t err_code;
   err_code = ble_nus_data_send(&m_nus, data_array, &length, m_conn_handle);
-  if ((err_code != NRF_SUCCESS)) {
+  if ((err_code != NRF_SUCCESS))
+  {
     loop_send_med--;
     Next_Sending = false;
   }
 }
 
-void Send_Confirmation_OK() {
+void Send_Confirmation_OK()
+{
   static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
   static uint8_t index = 2;
   data_array[0] = 0x01;
@@ -127,26 +136,31 @@ void Send_Confirmation_OK() {
 }
 
 /**@brief Function for handling the data from the Nordic UART Service.
-*
-* @details This function will process the data received from the Nordic UART BLE Service and send
-*          it to the UART module.
-*
-* @param[in] p_evt       Nordic UART Service event.
-*/
+ *
+ * @details This function will process the data received from the Nordic UART BLE Service and send
+ *          it to the UART module.
+ *
+ * @param[in] p_evt       Nordic UART Service event.
+ */
 /**@snippet [Handling the data received over BLE] */
-static void nus_data_handler(ble_nus_evt_t *p_evt) {
+static void nus_data_handler(ble_nus_evt_t *p_evt)
+{
 
-  if (p_evt->type == BLE_NUS_EVT_RX_DATA) {
+  if (p_evt->type == BLE_NUS_EVT_RX_DATA)
+  {
     uint32_t err_code;
 
     NRF_LOG_RAW_INFO("Reciviendo Datos\r\n");
     NRF_LOG_FLUSH();
     NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
     NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
-    for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++) {
-      do {
+    for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++)
+    {
+      do
+      {
         err_code = app_uart_put(p_evt->params.rx_data.p_data[i]);
-        if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY)) {
+        if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
+        {
           NRF_LOG_ERROR("Failed receiving NUS message. Error 0x%x. ", err_code);
           APP_ERROR_CHECK(err_code);
         }
@@ -155,13 +169,15 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
     NRF_LOG_RAW_INFO("Datos recepcionados :  ");
     NRF_LOG_FLUSH();
 
-    for (uint32_t l = 0; l < (p_evt->params.rx_data.length); l++) {
+    for (uint32_t l = 0; l < (p_evt->params.rx_data.length); l++)
+    {
       NRF_LOG_RAW_INFO("%x,", (p_evt->params.rx_data.p_data[l] - 0x30));
     }
     NRF_LOG_FLUSH();
 
     // 01 Carga contador de reinicios del emisor
-    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '1')) {
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '1'))
+    {
 
       contador = (uint32_t)(((p_evt->params.rx_data.p_data[2] - 0x30) * 10000) +
                             ((p_evt->params.rx_data.p_data[3] - 0x30) * 1000) +
@@ -179,7 +195,8 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
     }
 
     // 02 modifica tiempo de dormido tiempo 02xxxxx x en segundos
-    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '2')) {
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '2'))
+    {
 
       sleep_in_time_ticker = (uint32_t)(((p_evt->params.rx_data.p_data[2] - 0x30) * 10000) +
                                         ((p_evt->params.rx_data.p_data[3] - 0x30) * 1000) +
@@ -199,7 +216,8 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       Send_Confirmation_OK();
     }
     // 03 modifica tiempo de advertising 03xxxxx  x en segundos
-    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '3')) {
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '3'))
+    {
       NRF_LOG_RAW_INFO("Modificando tiempo de ADV (03) \r\n");
       APP_ADV_DURATION = (uint32_t)(((p_evt->params.rx_data.p_data[2] - 0x30) * 10000) +
                                     ((p_evt->params.rx_data.p_data[3] - 0x30) * 1000) +
@@ -219,7 +237,8 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       Send_Confirmation_OK();
     }
     // 04 Carga contador de Advertising 04xxxxx
-    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '4')) {
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '4'))
+    {
 
       contador = (uint32_t)(((p_evt->params.rx_data.p_data[2] - 0x30) * 10000) +
                             ((p_evt->params.rx_data.p_data[3] - 0x30) * 1000) +
@@ -237,7 +256,8 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
     }
 
     // 05 Resetea El nodo
-    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '5')) {
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '5'))
+    {
       NRF_LOG_RAW_INFO("Comando 05 recepcionado : Reseteando nodo\r\n");
       NRF_LOG_FLUSH();
       Reset_Line_Step(0);
@@ -245,34 +265,41 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
     }
 
     // 06  Escribe HORA en NoDO  ********
-    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '6')) {
-      NRF_LOG_INFO(" Cargando Hora 06");
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '6'))
+    {
+      NRF_LOG_INFO("Cargando Hora 06");
       NRF_LOG_FLUSH();
-      //"060YYYY.MM.DD HH.MM.SS"
-      t.year = (int)((p_evt->params.rx_data.p_data[3] - 0x30) * 1000) + ((p_evt->params.rx_data.p_data[4] - 0x30) * 100) + ((p_evt->params.rx_data.p_data[5] - 0x30) * 10) + ((p_evt->params.rx_data.p_data[6] - 0x30));
-      t.month = (int)((p_evt->params.rx_data.p_data[8] - 0x30) * 10 + (p_evt->params.rx_data.p_data[9] - 0x30)); //*10 + ((int) p_evt->params.rx_data.p_data[7]));
-      t.date = (int)((p_evt->params.rx_data.p_data[11] - 0x30) * 10 + (p_evt->params.rx_data.p_data[12] - 0x30));
-      t.hour = (uint8_t)((p_evt->params.rx_data.p_data[14] - 0x30) * 10 + (p_evt->params.rx_data.p_data[15] - 0x30));
-      t.minute = (uint8_t)((p_evt->params.rx_data.p_data[17] - 0x30) * 10 + (p_evt->params.rx_data.p_data[18] - 0x30));
-      t.second = (uint8_t)((p_evt->params.rx_data.p_data[20] - 0x30) * 10 + (p_evt->params.rx_data.p_data[21] - 0x30));
+      uint8_t *d = p_evt->params.rx_data.p_data;
 
-      Flash_array.second = t.second;
-      Flash_array.minute = t.minute;
-      Flash_array.hour = t.hour;
-      Flash_array.date = t.date;
-      Flash_array.month = t.month;
+      // Offset 2: empiezan los dígitos de la fecha/hora sin separadores
+      // YYYY MM DD HH MM SS
+      t.year = (d[2] - '0') * 1000 + (d[3] - '0') * 100 + (d[4] - '0') * 10 + (d[5] - '0');
+      t.month = (d[6] - '0') * 10 + (d[7] - '0');
+      t.date = (d[8] - '0') * 10 + (d[9] - '0');
+      t.hour = (d[10] - '0') * 10 + (d[11] - '0');
+      t.minute = (d[12] - '0') * 10 + (d[13] - '0');
+      t.second = (d[14] - '0') * 10 + (d[15] - '0');
+
+      // Copia a tu estructura de flash
       Flash_array.year = t.year;
+      Flash_array.month = t.month;
+      Flash_array.date = t.date;
+      Flash_array.hour = t.hour;
+      Flash_array.minute = t.minute;
+      Flash_array.second = t.second;
 
-      NRF_LOG_RAW_INFO("%02i/%02i/%02i   ", Flash_array.year, Flash_array.month, Flash_array.date);
-      NRF_LOG_RAW_INFO("%02i:%02i:%02i:%02i  \r\n", Flash_array.hour, Flash_array.minute, Flash_array.second);
-
+      // Log formateado
+      NRF_LOG_RAW_INFO("%04u/%02u/%02u   ",
+                       Flash_array.year, Flash_array.month, Flash_array.date);
+      NRF_LOG_RAW_INFO("%02u:%02u:%02u\r\n",
+                       Flash_array.hour, Flash_array.minute, Flash_array.second);
       NRF_LOG_FLUSH();
 
-      //Write_Flash=true;
       Send_Confirmation_OK();
     }
     // 07 Lee hora del nodo
-    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '7')) {
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '7'))
+    {
       NRF_LOG_INFO("Enviando Hora 07");
       NRF_LOG_FLUSH();
       unsigned char data_arr[20];
@@ -300,21 +327,61 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       uint16_t length = 19;
       err_code = ble_nus_data_send(&m_nus, data_arr, &length, m_conn_handle);
       if ((err_code != NRF_ERROR_INVALID_STATE) && (err_code != NRF_ERROR_BUSY) &&
-          (err_code != NRF_ERROR_NOT_FOUND)) {
+          (err_code != NRF_ERROR_NOT_FOUND))
+      {
         APP_ERROR_CHECK(err_code);
       }
     }
 
+    // Comando 08 - Envía el ultimo historial
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '8'))
+    {
+      NRF_LOG_RAW_INFO("Comando 08 recibido: Enviando último historial.\r\n");
+      NRF_LOG_FLUSH();
+      Tipo_Envio = Last_History; // Activa el envío del último historial
+      Next_Sending = true;       // Indica que hay datos para enviar
+      // Next_Transmition();        // Llama a la función para enviar el historial
+    }
+
+    // Comando 09 - Envia un historial segun el indice
+    if ((p_evt->params.rx_data.p_data[0] == '0') && (p_evt->params.rx_data.p_data[1] == '9'))
+    {
+      // Extrae los dígitos después de '09'
+      uint16_t idx = 0;
+      uint8_t *ptr = &p_evt->params.rx_data.p_data[2];
+      uint8_t len = p_evt->params.rx_data.length;
+      // Calcula cuántos dígitos hay (desde el tercer byte hasta el final)
+      for (uint8_t i = 2; i < len; i++)
+      {
+        if (ptr[i - 2] >= '0' && ptr[i - 2] <= '9')
+        {
+          idx = idx * 10 + (ptr[i - 2] - '0');
+        }
+        else
+        {
+          break; // Deja de leer si encuentra un carácter no numérico
+        }
+      }
+      Requested_History_Index = idx;
+      NRF_LOG_RAW_INFO("Comando 09 recibido: Enviando historial #%d.\r\n", Requested_History_Index);
+      NRF_LOG_FLUSH();
+      Tipo_Envio = History_By_Index;
+      Next_Sending = true;
+      Next_Transmition();
+    }
     // 20 modifica la MAC 20AABBCCDDEEFF
-    if ((p_evt->params.rx_data.p_data[0] == '2') && (p_evt->params.rx_data.p_data[1] == '0')) {
+    if ((p_evt->params.rx_data.p_data[0] == '2') && (p_evt->params.rx_data.p_data[1] == '0'))
+    {
       NRF_LOG_RAW_INFO("Cargando MAC custom (20) \r\n");
       NRF_LOG_FLUSH();
       char str1[6];
-      for (uint32_t i = 0; i < 6; i++) {
+      for (uint32_t i = 0; i < 6; i++)
+      {
         str1[i] = p_evt->params.rx_data.p_data[i + 2];
       }
       char str2[6];
-      for (uint32_t i = 6; i < 12; i++) {
+      for (uint32_t i = 6; i < 12; i++)
+      {
         str2[i - 6] = p_evt->params.rx_data.p_data[i + 2];
       }
 
@@ -337,7 +404,8 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       Send_Confirmation_OK();
     }
     // 21 USA mac de fabrica
-    if ((p_evt->params.rx_data.p_data[0] == '2') && (p_evt->params.rx_data.p_data[1] == '1')) {
+    if ((p_evt->params.rx_data.p_data[0] == '2') && (p_evt->params.rx_data.p_data[1] == '1'))
+    {
 
       NRF_LOG_RAW_INFO("Usando mac fabrica (21) \r\n");
       NRF_LOG_FLUSH();
@@ -347,7 +415,8 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       Send_Confirmation_OK();
     }
     // 22 USA mac cargada
-    if ((p_evt->params.rx_data.p_data[0] == '2') && (p_evt->params.rx_data.p_data[1] == '2')) {
+    if ((p_evt->params.rx_data.p_data[0] == '2') && (p_evt->params.rx_data.p_data[1] == '2'))
+    {
 
       NRF_LOG_RAW_INFO("Usando mac custom (22) \r\n");
       NRF_LOG_FLUSH();
@@ -356,9 +425,9 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       Send_Confirmation_OK();
     }
 
-
     // 30 Modifica Tipo de Sensor 30xx
-    if ((p_evt->params.rx_data.p_data[0] == '3') && (p_evt->params.rx_data.p_data[1] == '0')) {
+    if ((p_evt->params.rx_data.p_data[0] == '3') && (p_evt->params.rx_data.p_data[1] == '0'))
+    {
       NRF_LOG_RAW_INFO("Modificando Tipo de Emisor (30)\r\n");
       NRF_LOG_FLUSH();
       char str1[2];
@@ -369,12 +438,13 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       answer1 = strtol(str1, &remaining1, 16);
       NRF_LOG_RAW_INFO("The converted hexadecimal is %x \r\n ", answer1);
       NRF_LOG_FLUSH();
-      Flash_array.Type_sensor = (answer1)&0xFF;
+      Flash_array.Type_sensor = (answer1) & 0xFF;
       Write_Flash = true;
       Send_Confirmation_OK();
     }
     // 31 Modifica Tipo de resistencia  31xx
-    if ((p_evt->params.rx_data.p_data[0] == '3') && (p_evt->params.rx_data.p_data[1] == '1')) {
+    if ((p_evt->params.rx_data.p_data[0] == '3') && (p_evt->params.rx_data.p_data[1] == '1'))
+    {
       NRF_LOG_RAW_INFO("Modificando Tipo de resistencia (31)\r\n");
       NRF_LOG_FLUSH();
       char str1[2];
@@ -386,17 +456,19 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       NRF_LOG_RAW_INFO("The converted hexadecimal is %x \r\n  ", answer1);
       NRF_LOG_FLUSH();
 
-      Flash_array.Type_resistor = (answer1)&0xFF;
+      Flash_array.Type_resistor = (answer1) & 0xFF;
 
       Write_Flash = true;
       Send_Confirmation_OK();
-      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r') {
+      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r')
+      {
         while (app_uart_put('\n') == NRF_ERROR_BUSY)
           ;
       }
     }
-    // 32 Modifica Tipo de Sencibilidad para guardar historia 32xx   
-    if ((p_evt->params.rx_data.p_data[0] == '3') && (p_evt->params.rx_data.p_data[1] == '2')) {
+    // 32 Modifica Tipo de Sencibilidad para guardar historia 32xx
+    if ((p_evt->params.rx_data.p_data[0] == '3') && (p_evt->params.rx_data.p_data[1] == '2'))
+    {
       NRF_LOG_RAW_INFO("Modificando sensibilidad (32)\r\n");
       NRF_LOG_FLUSH();
       char str1[2];
@@ -407,18 +479,20 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       answer1 = strtol(str1, &remaining1, 16);
       NRF_LOG_RAW_INFO("The converted hexadecimal is %x \r\n  ", answer1);
       NRF_LOG_FLUSH();
-      Flash_array.Sensibility = (answer1)&0xFF;
+      Flash_array.Sensibility = (answer1) & 0xFF;
       Sensibilidad_Res = Flash_array.Sensibility;
       Write_Flash = true;
       Send_Confirmation_OK();
-      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r') {
-      while (app_uart_put('\n') == NRF_ERROR_BUSY)
+      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r')
+      {
+        while (app_uart_put('\n') == NRF_ERROR_BUSY)
           ;
       }
     }
 
     // 40 Modifica Tipo de bateria
-    if ((p_evt->params.rx_data.p_data[0] == '4') && (p_evt->params.rx_data.p_data[1] == '0')) {
+    if ((p_evt->params.rx_data.p_data[0] == '4') && (p_evt->params.rx_data.p_data[1] == '0'))
+    {
       NRF_LOG_RAW_INFO("Modificando Tipo de Bateria (40) \r\n");
       NRF_LOG_FLUSH();
       char str1[2];
@@ -432,16 +506,18 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       NRF_LOG_RAW_INFO("The converted hexadecimal is %x \r\n", answer1);
       NRF_LOG_FLUSH();
 
-      Flash_array.Type_battery = (answer1)&0xFF;
+      Flash_array.Type_battery = (answer1) & 0xFF;
       Write_Flash = true;
       Send_Confirmation_OK();
-      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r') {
+      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r')
+      {
         while (app_uart_put('\n') == NRF_ERROR_BUSY)
           ;
       }
     }
     // 50 Modifica offset del perno con respecto a la placa
-    if ((p_evt->params.rx_data.p_data[0] == '5') && (p_evt->params.rx_data.p_data[1] == '0')) {
+    if ((p_evt->params.rx_data.p_data[0] == '5') && (p_evt->params.rx_data.p_data[1] == '0'))
+    {
       NRF_LOG_RAW_INFO("Modificando Offset (50) \r\n");
       NRF_LOG_FLUSH();
 
@@ -449,20 +525,22 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       answer1 = ((p_evt->params.rx_data.p_data[2] - 0x30) * 100) + (p_evt->params.rx_data.p_data[3] - 0x30) * 10 + (p_evt->params.rx_data.p_data[4] - 0x30);
       NRF_LOG_RAW_INFO("The converted hexadecimal is %x  , dec %d \n  ", answer1, answer1);
       NRF_LOG_FLUSH();
-      Flash_array.offset_plate_bolt = (answer1)&0xFF;
+      Flash_array.offset_plate_bolt = (answer1) & 0xFF;
 
       Write_Flash = true;
 
       Send_Confirmation_OK();
 
-      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r') {
+      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r')
+      {
         while (app_uart_put('\n') == NRF_ERROR_BUSY)
           ;
       }
     }
 
     // 51 Modifica offset del sensor cuando se adapta al largo del perno
-    if ((p_evt->params.rx_data.p_data[0] == '5') && (p_evt->params.rx_data.p_data[1] == '1')) {
+    if ((p_evt->params.rx_data.p_data[0] == '5') && (p_evt->params.rx_data.p_data[1] == '1'))
+    {
       NRF_LOG_RAW_INFO("Modificando Offset sensor (51) \r\n");
       NRF_LOG_FLUSH();
 
@@ -471,33 +549,38 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
       answer1 = ((p_evt->params.rx_data.p_data[2] - 0x30) * 100) + (p_evt->params.rx_data.p_data[3] - 0x30) * 10 + (p_evt->params.rx_data.p_data[4] - 0x30);
       NRF_LOG_RAW_INFO("cantidad de sensores cortados es %x  , dec %d \n  ", answer1, answer1);
       NRF_LOG_FLUSH();
-      Flash_array.Offset_sensor_cut = (answer1)&0xFF;
+      Flash_array.Offset_sensor_cut = (answer1) & 0xFF;
 
       Write_Flash = true;
       Send_Confirmation_OK();
 
-      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r') {
+      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r')
+      {
         while (app_uart_put('\n') == NRF_ERROR_BUSY)
           ;
       }
     }
 
-    if ((p_evt->params.rx_data.p_data[0] == '5') && (p_evt->params.rx_data.p_data[1] == '2')) {
+    if ((p_evt->params.rx_data.p_data[0] == '5') && (p_evt->params.rx_data.p_data[1] == '2'))
+    {
       NRF_LOG_RAW_INFO("Reset de bloqueo de programa (52)\r\n");
       NRF_LOG_FLUSH();
-      for (int a = 0; a <= 13; a++) {
+      for (int a = 0; a <= 13; a++)
+      {
         Flash_array.reset[a] = 0x00;
       }
       Write_Flash = true;
       Send_Confirmation_OK();
-      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r') {
+      if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length - 1] == '\r')
+      {
         while (app_uart_put('\n') == NRF_ERROR_BUSY)
           ;
       }
     }
     // Limpia historia
-    if ((p_evt->params.rx_data.p_data[0] == '9') && (p_evt->params.rx_data.p_data[1] == '7')) {
-      
+    if ((p_evt->params.rx_data.p_data[0] == '9') && (p_evt->params.rx_data.p_data[1] == '7'))
+    {
+
       memset(&Flash_array.history, 0, sizeof(Flash_array.history));
       /*
       for (int loop_med = 0; loop_med < Size_Memory_History; loop_med++) {
@@ -511,43 +594,185 @@ static void nus_data_handler(ble_nus_evt_t *p_evt) {
 
       History_Position = 0;
       Flash_array.last_history = History_Position;
-      Flash_array.Sending_Position=0;
+      Flash_array.Sending_Position = 0;
       Write_Flash = true;
       Send_Confirmation_OK();
     }
     // 98 envio de historia
-    if ((p_evt->params.rx_data.p_data[0] == '9') && (p_evt->params.rx_data.p_data[1] == '8')) {
+    if ((p_evt->params.rx_data.p_data[0] == '9') && (p_evt->params.rx_data.p_data[1] == '8'))
+    {
       Tipo_Envio = History;
       Next_Sending = true;
       loop_send_med = 0;
     }
     // 99 ENVIO DE CONFIGURACION
-    if ((p_evt->params.rx_data.p_data[0] == '9') && (p_evt->params.rx_data.p_data[1] == '9')) {
+    if ((p_evt->params.rx_data.p_data[0] == '9') && (p_evt->params.rx_data.p_data[1] == '9'))
+    {
       Tipo_Envio = Configuration;
       Next_Sending = true;
       loop_send_med = 0;
     }
   }
-  if (p_evt->type == BLE_NUS_EVT_TX_RDY) {
+  if (p_evt->type == BLE_NUS_EVT_TX_RDY)
+  {
     Next_Sending = true;
   }
 }
 
-void Next_Transmition() {
+void Next_Transmition()
+{
   static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
   static uint8_t index = 2;
   static uint16_t position;
   uint16_t Total_sendig;
 
-  if (Flash_array.Sending_Position == 0) {
+  if (Flash_array.Sending_Position == 0)
+  {
     Total_sendig = History_Position;
   }
-      else {
-    Total_sendig = Size_Memory_History-1;
+  else
+  {
+    Total_sendig = Size_Memory_History - 1;
   }
 
-  if (Tipo_Envio == History) {
-    if (loop_send_med < (Total_sendig)) {
+  if (Tipo_Envio == History_By_Index)
+  {
+    position = 0;
+    if (Requested_History_Index < Size_Memory_History)
+    {
+      uint16_t idx = Requested_History_Index;
+      data_array[position++] = 0xA8; // Código para identificar el envío por índice
+      data_array[position++] = Flash_array.history[idx].day;
+      data_array[position++] = Flash_array.history[idx].month;
+      data_array[position++] = (Flash_array.history[idx].year >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].year & 0xFF;
+      data_array[position++] = Flash_array.history[idx].hour;
+      data_array[position++] = Flash_array.history[idx].minute;
+      data_array[position++] = Flash_array.history[idx].second;
+      data_array[position++] = (Flash_array.history[idx].Contador >> 24) & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].Contador >> 16) & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].Contador >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].Contador & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].V1 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V1 & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].V2 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V2 & 0xFF;
+      data_array[position++] = Flash_array.history[idx].battery;
+
+      // MAC original (6 bytes)
+      for (int i = 0; i < 6; i++)
+        data_array[position++] = Flash_array.mac_original[i];
+      // MAC custom (6 bytes)
+      for (int i = 0; i < 6; i++)
+        data_array[position++] = Flash_array.mac_custom[i];
+
+      // V3 a V8
+      data_array[position++] = (Flash_array.history[idx].V3 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V3 & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].V4 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V4 & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].V5 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V5 & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].V6 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V6 & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].V7 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V7 & 0xFF;
+      data_array[position++] = (Flash_array.history[idx].V8 >> 8) & 0xFF;
+      data_array[position++] = Flash_array.history[idx].V8 & 0xFF;
+
+      // Número de historial enviado
+      data_array[position++] = (idx >> 8) & 0xFF;
+      data_array[position++] = idx & 0xFF;
+
+      index = position;
+      Next_Sending = false;
+      send_data_Nus(index, data_array);
+    }
+    else
+    {
+      NRF_LOG_RAW_INFO("Índice de historial fuera de rango.\r\n");
+      Next_Sending = false;
+    }
+    Tipo_Envio = 0;
+  }
+
+  if (Tipo_Envio == Last_History)
+  {
+    uint16_t last_position;
+    // if (Flash_array.last_history > 0)
+    // {
+    //   last_position = Flash_array.last_history - 1; // Obtiene la posición del último historial
+    // }
+
+    last_position = Flash_array.last_history - 1; // Obtiene la posición del último historial
+    if (last_position < 0)
+    {
+      last_position = 0; // Asegura que no sea menor a 0
+    }
+    position = 0;
+
+    data_array[position++] = 0x98; // Código para identificar el envío del último historial
+    data_array[position++] = Flash_array.history[last_position].day;
+    data_array[position++] = Flash_array.history[last_position].month;
+    data_array[position++] = (Flash_array.history[last_position].year >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].year & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].hour;
+    data_array[position++] = Flash_array.history[last_position].minute;
+    data_array[position++] = Flash_array.history[last_position].second;
+    data_array[position++] = (Flash_array.history[last_position].Contador >> 24) & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].Contador >> 16) & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].Contador >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].Contador & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].V1 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V1 & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].V2 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V2 & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].battery;
+
+    // MAC original (6 bytes)
+    data_array[position++] = Flash_array.mac_original[0];
+    data_array[position++] = Flash_array.mac_original[1];
+    data_array[position++] = Flash_array.mac_original[2];
+    data_array[position++] = Flash_array.mac_original[3];
+    data_array[position++] = Flash_array.mac_original[4];
+    data_array[position++] = Flash_array.mac_original[5];
+
+    // MAC custom (6 bytes)
+    data_array[position++] = Flash_array.mac_custom[0];
+    data_array[position++] = Flash_array.mac_custom[1];
+    data_array[position++] = Flash_array.mac_custom[2];
+    data_array[position++] = Flash_array.mac_custom[3];
+    data_array[position++] = Flash_array.mac_custom[4];
+    data_array[position++] = Flash_array.mac_custom[5];
+
+    // Valores V3 a V8 (2 bytes cada uno)
+    data_array[position++] = (Flash_array.history[last_position].V3 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V3 & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].V4 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V4 & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].V5 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V5 & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].V6 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V6 & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].V7 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V7 & 0xFF;
+    data_array[position++] = (Flash_array.history[last_position].V8 >> 8) & 0xFF;
+    data_array[position++] = Flash_array.history[last_position].V8 & 0xFF;
+
+    // Número de historial
+    data_array[position++] = (last_position >> 8) & 0xFF;
+    data_array[position++] = last_position & 0xFF;
+
+    index = position;                 // Actualiza el índice con la posición final
+    Next_Sending = false;             // Finaliza el envío
+    send_data_Nus(index, data_array); // Envía los datos
+    Tipo_Envio = 0;
+  }
+
+  if (Tipo_Envio == History)
+  {
+    if (loop_send_med < (Total_sendig))
+    {
 
       position = 0;
       data_array[position] = 0x98;
@@ -646,9 +871,9 @@ void Next_Transmition() {
       position++;
       data_array[position] = 4;
       position++;
-      data_array[position] = ((loop_send_med+1) >> 8) & 0xFF;
+      data_array[position] = ((loop_send_med + 1) >> 8) & 0xFF;
       position++;
-      data_array[position] = ((loop_send_med +1 )& 0xFF);
+      data_array[position] = ((loop_send_med + 1) & 0xFF);
       position++;
       data_array[position] = ((Total_sendig >> 8) & 0xFF);
       position++;
@@ -659,17 +884,21 @@ void Next_Transmition() {
       loop_send_med++;
       Next_Sending = true;
       send_data_Nus(index, data_array);
-    } else {
+    }
+    else
+    {
       Tipo_Envio = 0;
       Next_Sending = false;
     }
   }
 
-  if (Tipo_Envio == Configuration) {
+  if (Tipo_Envio == Configuration)
+  {
     static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
     static uint8_t index = 2;
 
-    switch (loop_send_med) {
+    switch (loop_send_med)
+    {
     case 0: // Envio de RESET
       data_array[0] = 0x01;
       data_array[1] = Flash_array.total_reset[0];
@@ -816,8 +1045,8 @@ void Next_Transmition() {
       loop_send_med++;
       Next_Sending = true;
       send_data_Nus(index, data_array);
-      //Tipo_Envio = 0;
-      //Next_Sending = false;
+      // Tipo_Envio = 0;
+      // Next_Sending = false;
       break;
 
     case 14: // Envio de Sensibilidad
@@ -835,8 +1064,9 @@ void Next_Transmition() {
 /**@snippet [Handling the data received over BLE] */
 
 /**@brief Function for initializing services that will be used by the application.
-*/
-static void services_init(void) {
+ */
+static void services_init(void)
+{
   uint32_t err_code;
   ble_nus_init_t nus_init;
   nrf_ble_qwr_init_t qwr_init = {0};
@@ -857,36 +1087,42 @@ static void services_init(void) {
 }
 
 /**@brief   Function for handling app_uart events.
-*
-* @details This function will receive a single character from the app_uart module and append it to
-*          a string. The string will be be sent over BLE when the last character received was a
-*          'new line' '\n' (hex 0x0A) or if the string has reached the maximum data length.
-*/
+ *
+ * @details This function will receive a single character from the app_uart module and append it to
+ *          a string. The string will be be sent over BLE when the last character received was a
+ *          'new line' '\n' (hex 0x0A) or if the string has reached the maximum data length.
+ */
 /**@snippet [Handling the data received over UART] */
 
-void uart_event_handle(app_uart_evt_t *p_event) {
+void uart_event_handle(app_uart_evt_t *p_event)
+{
   static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
   static uint8_t index = 0;
   uint32_t err_code;
 
-  switch (p_event->evt_type) {
+  switch (p_event->evt_type)
+  {
   case APP_UART_DATA_READY:
     UNUSED_VARIABLE(app_uart_get(&data_array[index]));
     index++;
 
     if ((data_array[index - 1] == '\n') ||
         (data_array[index - 1] == '\r') ||
-        (index >= m_ble_nus_max_data_len)) {
-      if (index > 1) {
+        (index >= m_ble_nus_max_data_len))
+    {
+      if (index > 1)
+      {
         NRF_LOG_DEBUG("Ready to send data over BLE NUS");
         NRF_LOG_HEXDUMP_DEBUG(data_array, index);
 
-        do {
+        do
+        {
           uint16_t length = (uint16_t)index;
           err_code = ble_nus_data_send(&m_nus, data_array, &length, m_conn_handle);
           if ((err_code != NRF_ERROR_INVALID_STATE) &&
               (err_code != NRF_ERROR_RESOURCES) &&
-              (err_code != NRF_ERROR_NOT_FOUND)) {
+              (err_code != NRF_ERROR_NOT_FOUND))
+          {
             APP_ERROR_CHECK(err_code);
           }
         } while (err_code == NRF_ERROR_RESOURCES);
@@ -909,63 +1145,68 @@ void uart_event_handle(app_uart_evt_t *p_event) {
   }
 }
 
-static void uart_init(void) {
+static void uart_init(void)
+{
   uint32_t err_code;
   app_uart_comm_params_t const comm_params =
-  {
-    .rx_pin_no = RX_PIN_NUMBER,
-    .tx_pin_no = TX_PIN_NUMBER,
-    .rts_pin_no = RTS_PIN_NUMBER,
-    .cts_pin_no = CTS_PIN_NUMBER,
-    .flow_control = APP_UART_FLOW_CONTROL_DISABLED,
-    .use_parity = false,
+      {
+          .rx_pin_no = RX_PIN_NUMBER,
+          .tx_pin_no = TX_PIN_NUMBER,
+          .rts_pin_no = RTS_PIN_NUMBER,
+          .cts_pin_no = CTS_PIN_NUMBER,
+          .flow_control = APP_UART_FLOW_CONTROL_DISABLED,
+          .use_parity = false,
 #if defined(UART_PRESENT)
-    .baud_rate = NRF_UART_BAUDRATE_115200
+          .baud_rate = NRF_UART_BAUDRATE_115200
 #else
-    .baud_rate = NRF_UARTE_BAUDRATE_115200
+          .baud_rate = NRF_UARTE_BAUDRATE_115200
 #endif
-  };
+      };
 
   APP_UART_FIFO_INIT(&comm_params,
-      UART_RX_BUF_SIZE,
-      UART_TX_BUF_SIZE,
-      uart_event_handle,
-      APP_IRQ_PRIORITY_LOWEST,
-      err_code);
+                     UART_RX_BUF_SIZE,
+                     UART_TX_BUF_SIZE,
+                     uart_event_handle,
+                     APP_IRQ_PRIORITY_LOWEST,
+                     err_code);
   APP_ERROR_CHECK(err_code);
 }
 
 /**@brief Function for handling an event from the Connection Parameters Module.
-*
-* @details This function will be called for all events in the Connection Parameters Module
-*          which are passed to the application.
-*
-* @note All this function does is to disconnect. This could have been done by simply setting
-*       the disconnect_on_fail config parameter, but instead we use the event handler
-*       mechanism to demonstrate its use.
-*
-* @param[in] p_evt  Event received from the Connection Parameters Module.
-*/
-static void on_conn_params_evt(ble_conn_params_evt_t *p_evt) {
+ *
+ * @details This function will be called for all events in the Connection Parameters Module
+ *          which are passed to the application.
+ *
+ * @note All this function does is to disconnect. This could have been done by simply setting
+ *       the disconnect_on_fail config parameter, but instead we use the event handler
+ *       mechanism to demonstrate its use.
+ *
+ * @param[in] p_evt  Event received from the Connection Parameters Module.
+ */
+static void on_conn_params_evt(ble_conn_params_evt_t *p_evt)
+{
   uint32_t err_code;
 
-  if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED) {
+  if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
+  {
     err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
     APP_ERROR_CHECK(err_code);
   }
 }
 
 /**@brief Function for handling errors from the Connection Parameters module.
-*
-* @param[in] nrf_error  Error code containing information about what went wrong.
-*/
-static void conn_params_error_handler(uint32_t nrf_error) {
+ *
+ * @param[in] nrf_error  Error code containing information about what went wrong.
+ */
+static void conn_params_error_handler(uint32_t nrf_error)
+{
   APP_ERROR_HANDLER(nrf_error);
 }
 
 /**@brief Function for initializing the Connection Parameters module.
-*/
-static void conn_params_init(void) {
+ */
+static void conn_params_init(void)
+{
   uint32_t err_code;
   ble_conn_params_init_t cp_init;
 
@@ -985,15 +1226,17 @@ static void conn_params_init(void) {
 }
 
 /**@brief Function for handling advertising events.
-*
-* @details This function will be called for advertising events which are passed to the application.
-*
-* @param[in] ble_adv_evt  Advertising event.
-*/
-static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
+ *
+ * @details This function will be called for advertising events which are passed to the application.
+ *
+ * @param[in] ble_adv_evt  Advertising event.
+ */
+static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
+{
   uint32_t err_code;
 
-  switch (ble_adv_evt) {
+  switch (ble_adv_evt)
+  {
   case BLE_ADV_EVT_FAST:
     err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
     APP_ERROR_CHECK(err_code);
@@ -1007,14 +1250,16 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
 }
 
 /**@brief Function for handling BLE events.
-*
-* @param[in]   p_ble_evt   Bluetooth stack event.
-* @param[in]   p_context   Unused.
-*/
-static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
+ *
+ * @param[in]   p_ble_evt   Bluetooth stack event.
+ * @param[in]   p_context   Unused.
+ */
+static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
+{
   uint32_t err_code;
 
-  switch (p_ble_evt->header.evt_id) {
+  switch (p_ble_evt->header.evt_id)
+  {
   case BLE_GAP_EVT_CONNECTED:
     NRF_LOG_RAW_INFO("Connected\r\n");
     uart_init();
@@ -1040,7 +1285,8 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
     m_conn_handle = BLE_CONN_HANDLE_INVALID;
     break;
 
-  case BLE_GAP_EVT_PHY_UPDATE_REQUEST: {
+  case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
+  {
     NRF_LOG_DEBUG("PHY update request.");
     ble_gap_phys_t const phys =
         {
@@ -1049,7 +1295,8 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
         };
     err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
     APP_ERROR_CHECK(err_code);
-  } break;
+  }
+  break;
 
   case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
     // Pairing not supported
@@ -1066,14 +1313,14 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
   case BLE_GATTC_EVT_TIMEOUT:
     // Disconnect on GATT Client timeout event.
     err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
-        BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+                                     BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
     APP_ERROR_CHECK(err_code);
     break;
 
   case BLE_GATTS_EVT_TIMEOUT:
     // Disconnect on GATT Server timeout event.
     err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
-        BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+                                     BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
     APP_ERROR_CHECK(err_code);
     break;
 
@@ -1084,10 +1331,11 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
 }
 
 /**@brief Function for the SoftDevice initialization.
-*
-* @details This function initializes the SoftDevice and the BLE event interrupt.
-*/
-static void ble_stack_init(void) {
+ *
+ * @details This function initializes the SoftDevice and the BLE event interrupt.
+ */
+static void ble_stack_init(void)
+{
   ret_code_t err_code;
 
   err_code = nrf_sdh_enable_request();
@@ -1108,18 +1356,21 @@ static void ble_stack_init(void) {
 }
 
 /**@brief Function for handling events from the GATT library. */
-void gatt_evt_handler(nrf_ble_gatt_t *p_gatt, nrf_ble_gatt_evt_t const *p_evt) {
-  if ((m_conn_handle == p_evt->conn_handle) && (p_evt->evt_id == NRF_BLE_GATT_EVT_ATT_MTU_UPDATED)) {
+void gatt_evt_handler(nrf_ble_gatt_t *p_gatt, nrf_ble_gatt_evt_t const *p_evt)
+{
+  if ((m_conn_handle == p_evt->conn_handle) && (p_evt->evt_id == NRF_BLE_GATT_EVT_ATT_MTU_UPDATED))
+  {
     m_ble_nus_max_data_len = p_evt->params.att_mtu_effective - OPCODE_LENGTH - HANDLE_LENGTH;
     NRF_LOG_RAW_INFO("Data len is set to 0x%X(%d)\r\n", m_ble_nus_max_data_len, m_ble_nus_max_data_len);
   }
   NRF_LOG_DEBUG("ATT MTU exchange completed. central 0x%x peripheral 0x%x",
-      p_gatt->att_mtu_desired_central,
-      p_gatt->att_mtu_desired_periph);
+                p_gatt->att_mtu_desired_central,
+                p_gatt->att_mtu_desired_periph);
 }
 
 /**@brief Function for initializing the GATT library. */
-void gatt_init(void) {
+void gatt_init(void)
+{
   ret_code_t err_code;
 
   err_code = nrf_ble_gatt_init(&m_gatt, gatt_evt_handler);
@@ -1129,7 +1380,8 @@ void gatt_init(void) {
   APP_ERROR_CHECK(err_code);
 }
 
-static void advertising_init(void) {
+static void advertising_init(void)
+{
   // 0x02 0A 04  12 FF 33221001CB0000000000000000000039FF  05 09 686F6C79
   uint32_t err_code;
   float Value_Wear;
@@ -1147,7 +1399,8 @@ static void advertising_init(void) {
     Battery_level = 0x366; // Corrige Valores Altos de Voltaje
   if (Battery_level < 0x166)
     Battery_level = 0x166; // Corrige Valores Altos de Voltaje
-  if (Battery_level <= 0x366 && Battery_level >= 0x167) {
+  if (Battery_level <= 0x366 && Battery_level >= 0x167)
+  {
     Battery_level = (Battery_level - 0x166) / 2;
   } // El nivel de Bateria es de 0 a 255, el 255 es 4.25 Volt... se calcula el nivel de bateria en la WEB.
   NRF_LOG_RAW_INFO(" -- dato a Enviar %d \r\n", Battery_level);
@@ -1179,7 +1432,8 @@ static void advertising_init(void) {
   NRF_LOG_RAW_INFO("offset: mm placa-perno %d \r\n", (Offset_desgaste - 128));
   NRF_LOG_FLUSH();
 
-  if (History_Position == 0) {
+  if (History_Position == 0)
+  {
     Flash_array.history[History_Position].day = t.date;
     Flash_array.history[History_Position].month = t.month;
     Flash_array.history[History_Position].year = t.year;
@@ -1201,24 +1455,25 @@ static void advertising_init(void) {
     Flash_array.last_history = History_Position;
   }
 
-  if (History_Position != 0) {
+  if (History_Position != 0)
+  {
     Valor_1 = Flash_array.history[History_Position - 1].V1;
     Valor_2 = Flash_array.history[History_Position - 1].V2;
 
-
     // Se elimina la logica de cambio de sensibilidad por una que grabe un dato por dia.
-/*
-    if ((Pista1 < (Valor_1 - Sensibilidad_Res)) || (Pista1 > (Valor_1 + Sensibilidad_Res))) {
-      Another_Value = true;
-    }
-   if ((Pista2 < (Valor_2 - Sensibilidad_Res)) || (Pista2 > (Valor_2 + Sensibilidad_Res))) {
-      Another_Value = true;
-   }
-*/
+    /*
+        if ((Pista1 < (Valor_1 - Sensibilidad_Res)) || (Pista1 > (Valor_1 + Sensibilidad_Res))) {
+          Another_Value = true;
+        }
+       if ((Pista2 < (Valor_2 - Sensibilidad_Res)) || (Pista2 > (Valor_2 + Sensibilidad_Res))) {
+          Another_Value = true;
+       }
+    */
 
-    //Another_Value = true; // **************************************************************** BORRAR   OJO  *******
+    // Another_Value = true; // **************************************************************** BORRAR   OJO  *******
 
-    if (Another_Value) {
+    if (Another_Value)
+    {
       NRF_LOG_RAW_INFO("GRABACION HISTORIA posision/total %d/%d \r\n", History_Position, Size_Memory_History);
       NRF_LOG_FLUSH();
       Flash_array.history[History_Position].day = t.date;
@@ -1239,10 +1494,11 @@ static void advertising_init(void) {
       Flash_array.history[History_Position].battery = Battery_level;
       History_Position++;
 
-      if (History_Position >= (Size_Memory_History - 1)) {
+      if (History_Position >= (Size_Memory_History - 1))
+      {
 
         History_Position = 0;
-        Flash_array.Sending_Position=1;
+        Flash_array.Sending_Position = 1;
       }
 
       Flash_array.last_history = History_Position;
@@ -1250,8 +1506,10 @@ static void advertising_init(void) {
     }
   }
 
-  if (impresion_log) {
-    for (int loop_med = 0; loop_med <= (History_Position + 1); loop_med++) {
+  if (impresion_log)
+  {
+    for (int loop_med = 0; loop_med <= (History_Position + 1); loop_med++)
+    {
       NRF_LOG_RAW_INFO("historia %d: - fecha %d/%d/%d ", loop_med, Flash_array.history[loop_med].day, Flash_array.history[loop_med].month, Flash_array.history[loop_med].year);
       NRF_LOG_FLUSH();
       NRF_LOG_RAW_INFO("%d:%d:%d ", Flash_array.history[loop_med].hour, Flash_array.history[loop_med].minute, Flash_array.history[loop_med].second);
@@ -1262,21 +1520,24 @@ static void advertising_init(void) {
     }
   }
 
-  if (Value_Wear < 0xFD) {
+  if (Value_Wear < 0xFD)
+  {
     float _precut = (float)Flash_array.Offset_sensor_cut * Step_of_resistor;
     if (_precut > 0.0)
       Value_Wear = Value_Wear - _precut;
 
     float _offset = (float)Offset_desgaste - 128;
 
-    if (_offset >= 0.0) {
+    if (_offset >= 0.0)
+    {
       if (Value_Wear <= _offset)
         Value_Wear = 0.0;
       else
         Value_Wear = round(Value_Wear - _offset);
     }
 
-    if (_offset < 0.0) {
+    if (_offset < 0.0)
+    {
       _offset = _offset * -1.0;
       if (Value_Wear != 0.0)
         Value_Wear = round(Value_Wear + _offset);
@@ -1310,7 +1571,7 @@ static void advertising_init(void) {
 
   m_beacon_info[13] = (uint8_t)(Value_Wear);
   m_beacon_info[14] = (uint8_t)(Battery_level);
-  m_beacon_info[15] = (uint8_t)temp; //temperatura del NODO
+  m_beacon_info[15] = (uint8_t)temp; // temperatura del NODO
   m_beacon_info[18] = Flash_array.mac_original[0];
   m_beacon_info[19] = Flash_array.mac_original[1];
   m_beacon_info[20] = Flash_array.mac_original[2];
@@ -1333,7 +1594,7 @@ static void advertising_init(void) {
 
   memset(&init, 0, sizeof(init));
 
-  init.advdata.name_type = BLE_ADVDATA_NO_NAME; //BLE_ADVDATA_FULL_NAME;
+  init.advdata.name_type = BLE_ADVDATA_NO_NAME; // BLE_ADVDATA_FULL_NAME;
   init.advdata.include_appearance = false;
   init.advdata.p_manuf_specific_data = &manuf_specific_data;
   init.advdata.p_tx_power_level = &Potencia_antenna;
@@ -1350,15 +1611,17 @@ static void advertising_init(void) {
 }
 
 /**@brief Function for starting advertising.
-*/
-static void advertising_start(void) {
+ */
+static void advertising_start(void)
+{
   Transmiting_Ble = true;
 
   uint32_t err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
   APP_ERROR_CHECK(err_code);
 }
 
-void set_addr(void) {
+void set_addr(void)
+{
   static ble_gap_addr_t m_central_addr;
   m_central_addr.addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC;
 

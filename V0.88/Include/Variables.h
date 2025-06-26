@@ -127,6 +127,9 @@ uint16_t        loop_send_med;
 int8_t          Tipo_Envio                         = 0;
 int8_t          Configuration                      = 1;
 int8_t          History                            = 2;
+int8_t          Last_History                       = 3;
+int8_t          History_By_Index                   = 4;
+
 bool            Next_Sending                       = false;
 
 bool            impresion_log                      = false;
@@ -213,7 +216,7 @@ uint8_t Flash_storage_datos_init[SIZE_FLASH]=
 0x10,                           // Tipo de Sensor                 Comienza en 29
 // 10 Perno     de 120 mm Espaciamiento 2 mm Total 22 divisiones
 // 11 Esparrago de 250 mm Espaciamiento 6 mm total 32 Divisiones
-// 12 Esparrago de 200 mm Espaciamiento 6 mm total 23 Divisionesç
+// 12 Esparrago de 200 mm Espaciamiento 6 mm total 23 Divisionesï¿½
 // 13 Esparrago de 70.2 mm Espaciamiento 1.3 mm total 54 Divisiones
 0x1,                            // 00 Bateria de 3.6 V 1200 mAh   Comienza en 30
 // 01 Bateria de 3.7 v 500 mAh
