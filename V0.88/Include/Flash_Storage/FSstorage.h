@@ -1,34 +1,36 @@
 #include "nrf_fstorage.h"
-#include "nrf_fstorage_sd.h"
 #include "nrf_fstorage_nvmc.h"
+#include "nrf_fstorage_sd.h"
 
 extern store_flash Flash_array;
 extern uint8_t Reset_Index;
 
 static void fstorage_evt_handler(nrf_fstorage_evt_t *p_evt);
 
-NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
-    {
-        /* Set a handler for fstorage events. */
-        .evt_handler = fstorage_evt_handler,
+NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) = {
+    /* Set a handler for fstorage events. */
+    .evt_handler = fstorage_evt_handler,
 
-        /*
-        These below are the boundaries of the flash space assigned to this instance of fstorage.
-        * You must set these manually, even at runtime, before nrf_fstorage_init() is called.
-        * The function nrf5_flash_end_addr_get() can be used to retrieve the last address on the
-        * last page of flash available to write data. */
-        .start_addr = 0x7C000,
-        .end_addr = 0x7FFFF,
+    /*
+    These below are the boundaries of the flash space assigned to this instance
+    of fstorage.
+    * You must set these manually, even at runtime, before nrf_fstorage_init()
+    is called.
+    * The function nrf5_flash_end_addr_get() can be used to retrieve the last
+    address on the
+    * last page of flash available to write data. */
+    .start_addr = 0x7C000,
+    .end_addr = 0x7FFFF,
 };
 
 //.start_addr = 0x7C000,
 //.end_addr   = 0x7FFFF,
 
-// LA MEMORIA FLASH tiene segmentos de 4096 bytes, y cuando se borra la memoeria se borra por segmentos
+// LA MEMORIA FLASH tiene segmentos de 4096 bytes, y cuando se borra la memoeria
+// se borra por segmentos
 
 /**@brief   Sleep until an event is received. */
-static void power_manage(void)
-{
+static void power_manage(void) {
 #ifdef SOFTDEVICE_PRESENT
   (void)sd_app_evt_wait();
 #else
@@ -36,63 +38,55 @@ static void power_manage(void)
 #endif
 }
 
-static void print_flash_info(nrf_fstorage_t *p_fstorage)
-{
+static void print_flash_info(nrf_fstorage_t *p_fstorage) {
   NRF_LOG_RAW_INFO("========| flash info |========\r\n");
-  NRF_LOG_RAW_INFO("erase unit: \t%d bytes\r\n", p_fstorage->p_flash_info->erase_unit);
-  NRF_LOG_RAW_INFO("program unit: \t%d bytes\r\n", p_fstorage->p_flash_info->program_unit);
+  NRF_LOG_RAW_INFO("erase unit: \t%d bytes\r\n",
+                   p_fstorage->p_flash_info->erase_unit);
+  NRF_LOG_RAW_INFO("program unit: \t%d bytes\r\n",
+                   p_fstorage->p_flash_info->program_unit);
   NRF_LOG_RAW_INFO("==============================\r\n");
   NRF_LOG_FLUSH();
 }
-static uint32_t nrf5_flash_end_addr_get()
-{
+static uint32_t nrf5_flash_end_addr_get() {
   uint32_t const bootloader_addr = BOOTLOADER_ADDRESS;
   uint32_t const page_sz = NRF_FICR->CODEPAGESIZE;
   uint32_t const code_sz = NRF_FICR->CODESIZE;
 
-  return (bootloader_addr != 0xFFFFFFFF ? bootloader_addr : (code_sz * page_sz));
+  return (bootloader_addr != 0xFFFFFFFF ? bootloader_addr
+                                        : (code_sz * page_sz));
 }
 
-static void fstorage_evt_handler(nrf_fstorage_evt_t *p_evt)
-{
-  if (p_evt->result != NRF_SUCCESS)
-  {
-    // NRF_LOG_INFO("--> Event received: ERROR while executing an fstorage operation.");
+static void fstorage_evt_handler(nrf_fstorage_evt_t *p_evt) {
+  if (p_evt->result != NRF_SUCCESS) {
+    // NRF_LOG_INFO("--> Event received: ERROR while executing an fstorage
+    // operation.");
     return;
   }
 
-  switch (p_evt->id)
-  {
-  case NRF_FSTORAGE_EVT_WRITE_RESULT:
-  {
+  switch (p_evt->id) {
+  case NRF_FSTORAGE_EVT_WRITE_RESULT: {
     // NRF_LOG_INFO("--> Event received: wrote %d bytes at address 0x%x.",
     //              p_evt->len, p_evt->addr);
-  }
-  break;
+  } break;
 
-  case NRF_FSTORAGE_EVT_ERASE_RESULT:
-  {
+  case NRF_FSTORAGE_EVT_ERASE_RESULT: {
     // NRF_LOG_INFO("--> Event received: erased %d page from address 0x%x.",
     //              p_evt->len, p_evt->addr);
-  }
-  break;
+  } break;
 
   default:
     break;
   }
 }
 
-void wait_for_flash_ready(nrf_fstorage_t const *p_fstorage)
-{
+void wait_for_flash_ready(nrf_fstorage_t const *p_fstorage) {
   /* While fstorage is busy, sleep and wait for an event. */
-  while (nrf_fstorage_is_busy(p_fstorage))
-  {
+  while (nrf_fstorage_is_busy(p_fstorage)) {
     power_manage();
   }
 }
 
-void FsStorage_Init()
-{
+void FsStorage_Init() {
   ret_code_t rc;
   NRF_LOG_RAW_INFO("fstorage example started.\r\n");
 
@@ -104,50 +98,45 @@ void FsStorage_Init()
   (void)nrf5_flash_end_addr_get();
 }
 
-void Fstorage_Read_Data()
-{
+void Fstorage_Read_Data() {
   ret_code_t rc;
-  if (len > sizeof(Flash_array))
-  {
+  if (len > sizeof(Flash_array)) {
     len = sizeof(Flash_array);
   }
   NRF_LOG_RAW_INFO("Datos de la Flash nueva : %is\n", sizeof(Flash_array));
   NRF_LOG_FLUSH();
 
-  rc = nrf_fstorage_read(&fstorage, fstorage.start_addr, &Flash_array, sizeof(Flash_array));
-  if (rc != NRF_SUCCESS)
-  {
+  rc = nrf_fstorage_read(&fstorage, fstorage.start_addr, &Flash_array,
+                         sizeof(Flash_array));
+  if (rc != NRF_SUCCESS) {
     NRF_LOG_INFO("nrf_fstorage_read() returned: %s\n", nrf_strerror_get(rc));
     NRF_LOG_FLUSH();
   }
 }
-void Fstorage_Erase_Writing()
-{
+void Fstorage_Erase_Writing() {
   ret_code_t rc;
 
   rc = nrf_fstorage_erase(&fstorage, fstorage.start_addr, 2, NULL); // 0x3e
 
-  if (rc != NRF_SUCCESS)
-  {
+  if (rc != NRF_SUCCESS) {
     NRF_LOG_INFO("nrf_fstorage_erase() returned: %s\n", nrf_strerror_get(rc));
     NRF_LOG_FLUSH();
   }
 
   wait_for_flash_ready(&fstorage);
-  rc = nrf_fstorage_write(&fstorage, fstorage.start_addr, &Flash_array, sizeof(Flash_array), NULL);
+  rc = nrf_fstorage_write(&fstorage, fstorage.start_addr, &Flash_array,
+                          sizeof(Flash_array), NULL);
 
   APP_ERROR_CHECK(rc);
   wait_for_flash_ready(&fstorage);
 }
 
-void Show_reset_step()
-{
+void Show_reset_step() {
   NRF_LOG_RAW_INFO("\r\n");
   NRF_LOG_FLUSH();
   NRF_LOG_RAW_INFO("Puntos de reset del programa  : \r\n");
   NRF_LOG_FLUSH();
-  for (int i = 0; i < (0 + 10); i++)
-  {
+  for (int i = 0; i < (0 + 10); i++) {
     NRF_LOG_RAW_INFO("%i,", Flash_array.reset[i]);
   }
   NRF_LOG_RAW_INFO("\r\n");
@@ -156,8 +145,7 @@ void Show_reset_step()
 
 /**@brief Application main function.
  */
-void Reset_Line_Step(int Line)
-{
+void Reset_Line_Step(int Line) {
 
   Flash_array.reset[Reset_Index] = Line;
   /*
@@ -167,8 +155,7 @@ void Reset_Line_Step(int Line)
   Fstorage_Erase_Writing();
 }
 
-void Counter_restart()
-{
+void Counter_restart() {
   uint32_t result = 0;
   result += (Flash_array.total_reset[3] << 0);
   result += (Flash_array.total_reset[2] << 8);
@@ -180,8 +167,7 @@ void Counter_restart()
   Flash_array.total_reset[2] = ((result >> 8) & 0XFF);
   Flash_array.total_reset[3] = (result & 0XFF);
 }
-void Counter_ADV()
-{
+void Counter_ADV() {
   uint32_t result = 0;
   result += (Flash_array.total_adv[3] << 0);
   result += (Flash_array.total_adv[2] << 8);
@@ -193,17 +179,23 @@ void Counter_ADV()
   Flash_array.total_adv[2] = ((result >> 8) & 0XFF);
   Flash_array.total_adv[3] = (result & 0XFF);
 }
-void Flash_factory()
-{
+void Flash_factory() {
   memset(&Flash_Factory, 0, sizeof(Flash_Factory));
 
   Flash_Factory.company[0] = 0x33;
   Flash_Factory.company[1] = 0x22;
-  Flash_Factory.sleep_time[0] = 0x00;
-  Flash_Factory.sleep_time[1] = 0x00; // es en base a decimas de segundo 1800 serian 180 segundos.
-  Flash_Factory.sleep_time[2] = 0x64; // 1770 son 6000 lo que equivale a 600 segundos = 10 min.
+
+  // 64 = 10 segundos
+  // 96 = 15 segundos
+  Flash_Factory.sleep_time[0] = 0x96;
+  Flash_Factory.sleep_time[1] = 0x00;
+  Flash_Factory.sleep_time[2] = 0x00;
+  //
+
   Flash_Factory.adv_time[0] = 0x03;
-  Flash_Factory.adv_time[1] = 0xe8; // 1f4 son 500 = 5 segundos  // 3e8 son 1000 lo que equivale a 10 segundos.
+  Flash_Factory.adv_time[1] = 0xe8; // 1f4 son 500 = 5 segundos  // 3e8 son 1000
+                                    // lo que equivale a 10 segundos.
+
   Flash_Factory.Type_sensor = 0x10;
   Flash_Factory.offset_plate_bolt = 0x80; // 77 son 119  que son 28 mm cortados
   Flash_Factory.Offset_sensor_bolt = 0x7d;
@@ -222,25 +214,21 @@ void Flash_factory()
   Flash_Factory.Version[2] = 8;
 }
 
-void Flash_reset_check()
-{
-  for (int i = Reset_Index; i < (Reset_Index + 10); i++)
-  {
-    if (Flash_array.reset[i] == 0x00 || Flash_array.reset[i] == 0xff)
-    {
+void Flash_reset_check() {
+  for (int i = Reset_Index; i < (Reset_Index + 10); i++) {
+    if (Flash_array.reset[i] == 0x00 || Flash_array.reset[i] == 0xff) {
       Reset_Index = i;
       break;
     }
   }
 }
 
-uint32_t Flash_is_empty()
-{
+uint32_t Flash_is_empty() {
   uint32_t error_code = NRF_SUCCESS;
 
-  if ((Flash_array.company[0] == 0xff) && (Flash_array.company[1] == 0xff))
-  {
-    NRF_LOG_RAW_INFO("Grabacion Flash Standard.... tama�o %d \r\n", sizeof(Flash_array));
+  if ((Flash_array.company[0] == 0xff) && (Flash_array.company[1] == 0xff)) {
+    NRF_LOG_RAW_INFO("Grabacion Flash Standard.... tama�o %d \r\n",
+                     sizeof(Flash_array));
     NRF_LOG_FLUSH();
     memset(&Flash_array, 0x00, sizeof(Flash_array));
     Flash_array = Flash_Factory;
@@ -250,8 +238,7 @@ uint32_t Flash_is_empty()
 
     error_code = sd_ble_gap_addr_get(&my_addr);
 
-    if (error_code != NRF_SUCCESS)
-    {
+    if (error_code != NRF_SUCCESS) {
       return error_code;
     }
 
@@ -261,9 +248,7 @@ uint32_t Flash_is_empty()
     Flash_array.mac_original[3] = my_addr.addr[2];
     Flash_array.mac_original[4] = my_addr.addr[1];
     Flash_array.mac_original[5] = my_addr.addr[0];
-  }
-  else
-  {
+  } else {
     // Retoma el contador que llevaba
     contador += (Flash_array.total_adv[3] << 0);
     contador += (Flash_array.total_adv[2] << 8);
@@ -283,10 +268,9 @@ uint32_t Flash_is_empty()
   }
 
   // Carga Tiempo de dormido
-  sleep_in_time_ticker = (Flash_array.sleep_time[0] << 16);
-  sleep_in_time_ticker += (Flash_array.sleep_time[1] << 8);
-  sleep_in_time_ticker += (Flash_array.sleep_time[2] << 0);
-
+  sleep_in_time_ticker = (Flash_array.sleep_time[2] << 16) |
+                         (Flash_array.sleep_time[1] << 8) |
+                         Flash_array.sleep_time[0];
   NRF_LOG_RAW_INFO("time sleep %i.... \r\n", sleep_in_time_ticker);
   NRF_LOG_FLUSH();
 

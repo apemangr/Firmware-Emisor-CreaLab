@@ -58,6 +58,8 @@ extern void cli_init(void);
 extern void cli_start(void);
 extern void cli_process(void);
 
+bool go_to_sleep = false;
+
 int main(void)
 {
   ret_code_t err_code;
@@ -67,6 +69,7 @@ int main(void)
   Flash_factory();
 
   Flash_reset_check();
+
   Reset_Line_Step(1);
   NRF_LOG_RAW_INFO("**** INICIO DEL PROGRAMA **************************** 04 **  \r\n");
   NRF_LOG_RAW_INFO("**** STEP DEL RESET %i \r\n", (Reset_Index));
@@ -214,6 +217,7 @@ int main(void)
       advertising_init();
       conn_params_init();
       Reset_Line_Step(21);
+
       advertising_start();
     }
 
@@ -233,7 +237,9 @@ int main(void)
       Reset_Line_Step(23);
       advertising_start();
     }
+
     if (Device_BLE_connected)
+
     {
       if ((Tipo_Envio > 0) && (Next_Sending))
       {

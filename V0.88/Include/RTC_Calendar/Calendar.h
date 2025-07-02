@@ -30,26 +30,23 @@ extern "C"
 
   void Calendar_tick_second(void)
   {
-    // t.msecond++;
-    if (++t.msecond >= 10) // 100
+    if (++t.msecond >= 10) // 100 ms * 10 = 1 segundo
     {
       t.msecond = 0x00;
-      // t.second++;
-      if (++t.second >= 0x3c) // 60
+
+      if (++t.second >= 0x3c) // 60 segundos
       {
-        Another_Value = true;
         t.second = 0x00;
-        // t.minute++;
-        if (++t.minute >= 0x3c) // 60
+
+        if (++t.minute >= 0x3c) // 60 minutos
         {
           t.minute = 0x00;
-          // t.hour++;
-          if (++t.hour == 0x18) // 24
+
+          if (++t.hour == 0x18) // 24 horas
           {
             t.hour = 0x00;
-            // Another_Value = true;
-            // t.date++;
-            if (++t.date == 0x20) // 31
+
+            if (++t.date == 0x20) // día 32 (corrección inmediata)
             {
               t.month++;
               t.date = 1;
@@ -78,6 +75,7 @@ extern "C"
                 t.date = 1;
               }
             }
+
             if (t.month == 13)
             {
               t.month = 1;
@@ -85,9 +83,14 @@ extern "C"
             }
           }
         }
+
+        // Activar Another_Value UNA SOLA VEZ cada 1 minutos exactos
+        if ((t.minute % 1 == 0) && (t.second == 0))
+        {
+          Another_Value = true;
+        }
       }
     }
-    // PORTB=~(((t.second&0x01)|t.minute<<1)|t.hour<<7);
   }
 
   bool not_leap(void) // check for leap year
