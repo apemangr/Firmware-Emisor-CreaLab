@@ -187,13 +187,16 @@ void Flash_factory() {
 
   // 64 = 10 segundos
   // 96 = 15 segundos
-  Flash_Factory.sleep_time[0] = 0x96;
-  Flash_Factory.sleep_time[1] = 0x00;
-  Flash_Factory.sleep_time[2] = 0x00;
-  //
 
+
+  Flash_Factory.sleep_time[0] = 0x00;
+  Flash_Factory.sleep_time[1] = 0xEA;
+  Flash_Factory.sleep_time[2] = 0x60;
+
+
+  // 05DC son 1500 = 15 segundos
   Flash_Factory.adv_time[0] = 0x03;
-  Flash_Factory.adv_time[1] = 0xe8; // 1f4 son 500 = 5 segundos  // 3e8 son 1000
+  Flash_Factory.adv_time[1] = 0xE8; // 1f4 son 500 = 5 segundos  // 3e8 son 1000
                                     // lo que equivale a 10 segundos.
 
   Flash_Factory.Type_sensor = 0x10;
@@ -268,9 +271,10 @@ uint32_t Flash_is_empty() {
   }
 
   // Carga Tiempo de dormido
-  sleep_in_time_ticker = (Flash_array.sleep_time[2] << 16) |
-                         (Flash_array.sleep_time[1] << 8) |
-                         Flash_array.sleep_time[0];
+  sleep_in_time_ticker = (Flash_array.sleep_time[0] << 16);
+  sleep_in_time_ticker += (Flash_array.sleep_time[1] << 8);
+  sleep_in_time_ticker += (Flash_array.sleep_time[2] << 0);
+
   NRF_LOG_RAW_INFO("time sleep %i.... \r\n", sleep_in_time_ticker);
   NRF_LOG_FLUSH();
 

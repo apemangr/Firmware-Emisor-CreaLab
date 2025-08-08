@@ -2,7 +2,7 @@
 <session>
  <Bookmarks/>
  <Breakpoints groups="Breakpoints" active_group="Breakpoints">
-  <BreakpointListItem trigger="" line="80" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="../../../Include/Temp_chip/Temperature_chip.h" useHWbreakpoint="false"/>
+  <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
  <FrameBufferWindow>
@@ -47,8 +47,8 @@
  </TraceWindow>
  <Watch1>
   <Watches active="1" update="Never">
-   <Watchpoint expression="Sensibilidad_Res" name="Sensibilidad_Res" radix="-1" linenumber="105" filename="../../../main.c"/>
-   <Watchpoint expression="Flash_array" name="Flash_array" radix="-1" linenumber="105" filename="../../../main.c"/>
+   <Watchpoint expression="Sensibilidad_Res" name="Sensibilidad_Res" radix="-1" linenumber="111" filename="../../../main.c"/>
+   <Watchpoint expression="Flash_array" name="Flash_array" radix="-1" linenumber="111" filename="../../../main.c"/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -61,11 +61,14 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="64" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="0" top="55" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="77" y="380" useTextEdit="1" openedFrom="C:/Users/guill/OneDrive/Desktop/SDK_CON_FIRMWARE/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/Firmware-Emisor-CreaLab/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Antena/Antena.h" selected="0" top="354" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="100" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="77" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="301" useTextEdit="1" openedFrom="C:/Users/guill/OneDrive/Desktop/SDK_CON_FIRMWARE/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/Firmware-Emisor-CreaLab/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Flash_Storage/FSstorage.h" selected="0" top="268" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="29" y="17" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../Include/Temp_chip/Temperature_chip.h" selected="1" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="66" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="41" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="550" useTextEdit="1" openedFrom="C:/Users/guill/OneDrive/Desktop/SDK_CON_FIRMWARE/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/Firmware-Emisor-CreaLab/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Antena/Antena.h" selected="0" top="517" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="112" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="77" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="282" useTextEdit="1" openedFrom="C:/Users/guill/OneDrive/Desktop/SDK_CON_FIRMWARE/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/Firmware-Emisor-CreaLab/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Flash_Storage/FSstorage.h" selected="0" top="157" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="42" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../Include/Temp_chip/Temperature_chip.h" selected="0" top="10" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="45" useTextEdit="1" openedFrom="" useBinaryEdit="0" left="0" path="../../../../../11_smartWear_V0.88_Segger_nrf52832_PA factory_time/V0.88/main.c" selected="0" top="32" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="53" useTextEdit="1" openedFrom="C:/Users/guill/OneDrive/Desktop/SDK_CON_FIRMWARE/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/11_smartWear_V0.88_Segger_nrf52832_PA factory_time/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/RTC_Calendar/Calendar.h" selected="0" top="5" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="231" useTextEdit="1" openedFrom="C:/Users/guill/OneDrive/Desktop/SDK_CON_FIRMWARE/nRF5_SDK_17.1.0_ddde560/01_Firm_Emisor_Blanco/11_smartWear_V0.88_Segger_nrf52832_PA factory_time/V0.88/main.c" useBinaryEdit="0" left="0" path="../../../Include/Variables.h" selected="0" top="214" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_uart_pca10040_s132" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_uart_pca10040_s132" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="J-Link" buildConfiguration="Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

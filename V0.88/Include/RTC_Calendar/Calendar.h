@@ -33,17 +33,18 @@ extern "C"
     if (++t.msecond >= 10) // 100 ms * 10 = 1 segundo
     {
       t.msecond = 0x00;
-
+      Another_Value = true;
       if (++t.second >= 0x3c) // 60 segundos
       {
         t.second = 0x00;
-
         if (++t.minute >= 0x3c) // 60 minutos
         {
           t.minute = 0x00;
 
           if (++t.hour == 0x18) // 24 horas
           {
+
+            //Another_Value = true;
             t.hour = 0x00;
 
             if (++t.date == 0x20) // día 32 (corrección inmediata)
@@ -83,12 +84,7 @@ extern "C"
             }
           }
         }
-
-        // Activar Another_Value UNA SOLA VEZ cada 1 minutos exactos
-        if ((t.minute % 1 == 0) && (t.second == 0))
-        {
-          Another_Value = true;
-        }
+        
       }
     }
   }

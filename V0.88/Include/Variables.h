@@ -86,7 +86,7 @@ int8_t Potencia_antenna =
          // values are -40, -30, -20, -16, -12, -8, -4, 0, 3, and 4 dBm). 4
          // maximo para nrf52832
 int16_t Max_Time_Unconfident =
-    100; // 150;                       // Tiempo maximo de conexion establecida
+    400; // 150;                       // Tiempo maximo de conexion establecida
          // sin asegurar fuente confiable, 40 segundos.
 
 bool device_sleep = false;
@@ -95,7 +95,7 @@ uint32_t sleep_in_time_ticker = 0x6000; /** 430 son 43 segundos 0x4646A*/
 // 0x4646A son 8 horas menos 15 segundos
 
 uint32_t APP_ADV_DURATION =
-    500; /**< 1500 son 15 segundos The advertising duration (180 seconds) in
+    1500; /**< 1500 son 15 segundos The advertising duration (180 seconds) in
             units of 10 milliseconds.  era 800 */
 
 uint32_t Counter_sleep_ticker;
@@ -167,12 +167,46 @@ int8_t Configuration = 1;
 int8_t History = 2;
 int8_t Last_History = 3;
 int8_t History_By_Index = 4;
+int8_t Values = 5;
 
 bool Next_Sending = false;
 
 bool impresion_log = false;
 
 int8_t Sensibilidad_Res = 0;
+
+typedef struct
+{
+  uint8_t company[2];
+  uint8_t total_reset[4];
+  uint8_t total_adv[4];
+  bool Enable_Custom_mac;
+  uint8_t mac_custom[6];
+  uint8_t sleep_time[3];
+  uint8_t adv_time[2];
+  uint8_t mac_original[6];
+  uint8_t Type_resistor;
+  uint8_t Type_sensor;
+  uint8_t Type_battery;
+  uint8_t offset_plate_bolt;
+  uint8_t Version[3];
+  uint8_t Offset_sensor_cut;
+  uint8_t Offset_sensor_bolt;
+  uint8_t Offset_sensor_measure;
+  uint8_t Sending_Position;
+  uint8_t type_advertising;
+  uint8_t Sensibility;
+  uint8_t fecha[6];
+  uint8_t hora[6];
+  uint8_t reset[14];
+  uint8_t second;
+  uint8_t minute;
+  uint8_t hour;
+  uint8_t date;
+  uint8_t month;
+  uint16_t year;
+  uint16_t last_history;
+} store_config_send;
 
 typedef struct
 {

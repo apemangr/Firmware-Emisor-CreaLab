@@ -58,24 +58,30 @@ extern void cli_init(void);
 extern void cli_start(void);
 extern void cli_process(void);
 
-bool go_to_sleep = false;
+
 
 int main(void)
 {
   ret_code_t err_code;
+
   log_init();
   FsStorage_Init();
+
   Fstorage_Read_Data();
   Flash_factory();
 
   Flash_reset_check();
 
   Reset_Line_Step(1);
+
+
   NRF_LOG_RAW_INFO("**** INICIO DEL PROGRAMA **************************** 04 **  \r\n");
   NRF_LOG_RAW_INFO("**** STEP DEL RESET %i \r\n", (Reset_Index));
 
   NRF_LOG_FLUSH();
   Reset_Line_Step(2);
+
+
 
   nrf_temp_init();
   Reset_Line_Step(3);
@@ -202,6 +208,7 @@ int main(void)
 
   for (;;)
   {
+    // Imprime la variable Counter_to_disconnect a cada momento
     if (Wakeup_by_Timer)
     {
       Reset_Line_Step(20);
@@ -239,7 +246,6 @@ int main(void)
     }
 
     if (Device_BLE_connected)
-
     {
       if ((Tipo_Envio > 0) && (Next_Sending))
       {
