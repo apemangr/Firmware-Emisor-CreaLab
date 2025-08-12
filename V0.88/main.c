@@ -49,6 +49,8 @@
 #include "ADC_Perno.h"
 #include "Sensor_desgaste.h"
 #include "FSstorage.h"
+#include "History_Manager.h"
+#include "History_Adapter.h"
 #include "Led_signal.h"
 #include "Antena.h"
 #include "button.h"
@@ -66,6 +68,13 @@ int main(void)
 
   log_init();
   FsStorage_Init();
+  
+  // Inicializar el nuevo sistema de gestión de historiales
+  ret_code_t history_init_result = history_manager_init();
+  if (history_init_result != NRF_SUCCESS)
+  {
+    NRF_LOG_ERROR("Error inicializando History Manager: %d", history_init_result);
+  }
 
   Fstorage_Read_Data();
   Flash_factory();
@@ -126,13 +135,17 @@ int main(void)
   {
     for (int loop_med = 0; loop_med <= 10; loop_med++)
     {
-
-      NRF_LOG_RAW_INFO("fecha %d/%d/%d ", Flash_array.history[loop_med].day, Flash_array.history[loop_med].month, Flash_array.history[loop_med].year);
-      NRF_LOG_FLUSH();
-      NRF_LOG_RAW_INFO("%d:%d:%d ", Flash_array.history[loop_med].hour, Flash_array.history[loop_med].minute, Flash_array.history[loop_med].second);
-      NRF_LOG_FLUSH();
-      NRF_LOG_RAW_INFO("historia %d:- %d/%d/%d/%d \r\n", loop_med, Flash_array.history[loop_med].Contador, Flash_array.history[loop_med].V1, Flash_array.history[loop_med].V2, Flash_array.history[loop_med].battery);
-      NRF_LOG_FLUSH();
+      store_History history_record;
+      ret_code_t result = get_history_record(loop_med, &history_record);
+      if (result == NRF_SUCCESS)
+      {
+        NRF_LOG_RAW_INFO("fecha %d/%d/%d ", history_record.day, history_record.month, history_record.year);
+        NRF_LOG_FLUSH();
+        NRF_LOG_RAW_INFO("%d:%d:%d ", history_record.hour, history_record.minute, history_record.second);
+        NRF_LOG_FLUSH();
+        NRF_LOG_RAW_INFO("historia %d:- %d/%d/%d/%d \r\n", loop_med, history_record.Contador, history_record.V1, history_record.V2, history_record.battery);
+        NRF_LOG_FLUSH();
+      }
       nrf_delay_ms(20);
     }
   }
@@ -166,10 +179,37 @@ int main(void)
   } // Sensor 100 divisiones de 4  mm
 
   History_Position = Flash_array.last_history;
-  History_value.Contador = Flash_array.history[History_Position].Contador;
-  History_value.V1 = Flash_array.history[History_Position].V1;
-  History_value.V2 = Flash_array.history[History_Position].V2;
-  History_value.battery = Flash_array.history[History_Position].battery;
+  
+  // Leer el último historial usando el nuevo sistema
+  if (History_Position > 0)
+  {
+    store_History last_history;
+    ret_code_t rc = get_history_record(History_Position - 1, &last_history);
+    if (rc == NRF_SUCCESS)
+    {
+      History_value.Contador = last_history.Contador;
+      History_value.V1 = last_history.V1;
+      History_value.V2 = last_history.V2;
+      History_value.battery = last_history.battery;
+    }
+    else
+    {
+      NRF_LOG_WARNING("Error leyendo último historial en main: %d", rc);
+      // Usar valores por defecto
+      History_value.Contador = 0;
+      History_value.V1 = 0;
+      History_value.V2 = 0;
+      History_value.battery = 0;
+    }
+  }
+  else
+  {
+    // No hay historial previo
+    History_value.Contador = 0;
+    History_value.V1 = 0;
+    History_value.V2 = 0;
+    History_value.battery = 0;
+  }
 
   t.second = Flash_array.second;
   t.minute = Flash_array.minute;

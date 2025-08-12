@@ -102,6 +102,11 @@
       <file file_name="../../../main.c" />
       <file file_name="../config/sdk_config.h" />
     </folder>
+    <folder Name="History_Management">
+      <file file_name="../../../Include/Flash_Storage/History_Manager.c" />
+      <file file_name="../../../Include/Flash_Storage/History_Adapter.c" />
+      <file file_name="../../../Include/Variables.c" />
+    </folder>
     <folder Name="nRF_Segger_RTT">
       <file file_name="../../../../../../external/segger_rtt/SEGGER_RTT.c" />
       <file file_name="../../../../../../external/segger_rtt/SEGGER_RTT_Syscalls_SES.c" />

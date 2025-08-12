@@ -190,13 +190,13 @@ void Flash_factory() {
 
 
   Flash_Factory.sleep_time[0] = 0x00;
-  Flash_Factory.sleep_time[1] = 0xEA;
-  Flash_Factory.sleep_time[2] = 0x60;
+  Flash_Factory.sleep_time[1] = 0x00;
+  Flash_Factory.sleep_time[2] = 0x34;
 
 
   // 05DC son 1500 = 15 segundos
-  Flash_Factory.adv_time[0] = 0x03;
-  Flash_Factory.adv_time[1] = 0xE8; // 1f4 son 500 = 5 segundos  // 3e8 son 1000
+  Flash_Factory.adv_time[0] = 0x01;
+  Flash_Factory.adv_time[1] = 0xF4; // 1f4 son 500 = 5 segundos  // 3e8 son 1000
                                     // lo que equivale a 10 segundos.
 
   Flash_Factory.Type_sensor = 0x10;

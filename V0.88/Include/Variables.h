@@ -79,101 +79,91 @@
 
 // **********************************************Fstorage
 
-uint8_t m_beacon_info[Largo_Advertising];
-uint32_t contador = 0x00;
-int8_t Potencia_antenna =
-    -20; // 4                        // Radio transmit power in dBm (accepted
-         // values are -40, -30, -20, -16, -12, -8, -4, 0, 3, and 4 dBm). 4
-         // maximo para nrf52832
-int16_t Max_Time_Unconfident =
-    400; // 150;                       // Tiempo maximo de conexion establecida
-         // sin asegurar fuente confiable, 40 segundos.
+extern uint8_t m_beacon_info[Largo_Advertising];
+extern uint32_t contador;
+extern int8_t Potencia_antenna; // Radio transmit power in dBm (accepted values are -40, -30, -20, -16, -12, -8, -4, 0, 3, and 4 dBm). 4 maximo para nrf52832
+extern int16_t Max_Time_Unconfident; // Tiempo maximo de conexion establecida sin asegurar fuente confiable, 40 segundos.
 
-bool device_sleep = false;
-uint32_t sleep_in_time_ticker = 0x6000; /** 430 son 43 segundos 0x4646A*/
+extern bool device_sleep;
+extern uint32_t sleep_in_time_ticker; /** 430 son 43 segundos 0x4646A*/
 // 0x69780 son 12 horas
 // 0x4646A son 8 horas menos 15 segundos
 
-uint32_t APP_ADV_DURATION =
-    1500; /**< 1500 son 15 segundos The advertising duration (180 seconds) in
-            units of 10 milliseconds.  era 800 */
+extern uint32_t APP_ADV_DURATION; /**< 1500 son 15 segundos The advertising duration (180 seconds) in units of 10 milliseconds.  era 800 */
 
-uint32_t Counter_sleep_ticker;
+extern uint32_t Counter_sleep_ticker;
 
-bool Wakeup_by_Timer = false;
-const nrf_drv_rtc_t rtc =
-    NRF_DRV_RTC_INSTANCE(2); // Declaring an instance of nrf_drv_rtc for RTC0.
-uint16_t loop_timer;
+extern bool Wakeup_by_Timer;
+extern const nrf_drv_rtc_t rtc; // Declaring an instance of nrf_drv_rtc for RTC0.
+extern uint16_t loop_timer;
 
-bool Device_on = true;
-bool Wakeup_by_button = false;
-uint16_t loop_button;
+extern bool Device_on;
+extern bool Wakeup_by_button;
+extern uint16_t loop_button;
 
-bool Device_BLE_connected = false;
-bool connection_confident = false;
-int16_t Counter_to_disconnect;
+extern bool Device_BLE_connected;
+extern bool connection_confident;
+extern int16_t Counter_to_disconnect;
 
-bool Sensor_connected = false;
-bool Boton_Presionado = false;
-int16_t Time_button_pressed;
-int16_t MAX_Time_Button_pressed = 20;
+extern bool Sensor_connected;
+extern bool Boton_Presionado;
+extern int16_t Time_button_pressed;
+extern int16_t MAX_Time_Button_pressed;
 
-bool Transmiting_Ble = false;
-uint16_t Counter_Time_blink;
+extern bool Transmiting_Ble;
+extern uint16_t Counter_Time_blink;
 
-int8_t Blink_led_Time_on = 1;
-int8_t Blink_led_Time_off = 7;
-bool Led_encendido = false;
+extern int8_t Blink_led_Time_on;
+extern int8_t Blink_led_Time_off;
+extern bool Led_encendido;
 
-float Lenght_Cut;       // lARGO DEL CORTE.
-float Step_of_resistor; //  2 millimiter each resistors
-float Resistor_Cuted;
+extern float Lenght_Cut;       // lARGO DEL CORTE.
+extern float Step_of_resistor; //  2 millimiter each resistors
+extern float Resistor_Cuted;
 
-uint16_t Battery_level = 0;
+extern uint16_t Battery_level;
 
-int32_t temp;
+extern int32_t temp;
 
-uint8_t data_flash[SIZE_FLASH] = {0};
-uint32_t len = SIZE_FLASH; // Cantidad de Datos Guardado en la Flash
+extern uint8_t data_flash[SIZE_FLASH];
+extern uint32_t len; // Cantidad de Datos Guardado en la Flash
 
-bool Write_Flash = false;
-bool Write_DATE = false;
-uint16_t Timer_write_Date =
-    600; // cada 30 segundos graba la hora y fecha en flash
-uint16_t
-    Counter_Timer_write_Date; // cada 30 segundos graba la hora y fecha en flash
+extern bool Write_Flash;
+extern bool Write_DATE;
+extern uint16_t Timer_write_Date; // cada 30 segundos graba la hora y fecha en flash
+extern uint16_t Counter_Timer_write_Date; // cada 30 segundos graba la hora y fecha en flash
 
-uint8_t Tipo_dispositivo = 0x10;       // 10 Dispositivo desagaste Placas
-uint8_t Tipo_Configuracion_ohm = 0x00; // 00 para 6200 ohm  01 para 6800 ohm
-uint8_t Offset_desgaste = 0x00;        // valor que corrige la distancia entre el perno
+extern uint8_t Tipo_dispositivo;       // 10 Dispositivo desagaste Placas
+extern uint8_t Tipo_Configuracion_ohm; // 00 para 6200 ohm  01 para 6800 ohm
+extern uint8_t Offset_desgaste;        // valor que corrige la distancia entre el perno
                                        // y el inicio de la placa.
-int8_t Offset_sensor = 0x00;           // valor que corrige cuando se corta un sensor, es
+extern int8_t Offset_sensor;           // valor que corrige cuando se corta un sensor, es
                                        // decir se corta para adaptarlo a un perno.
 
-uint8_t Reset_Index = 0;   // posicion de la matrix del reset.
-uint8_t Reset_Line = 0x00; // posicion de la matrix del reset.
+extern uint8_t Reset_Index;   // posicion de la matrix del reset.
+extern uint8_t Reset_Line; // posicion de la matrix del reset.
 
-bool Rtc_waiting = false;
-uint8_t rtc_time;
+extern bool Rtc_waiting;
+extern uint8_t rtc_time;
 
-bool Another_Value = false;
+extern bool Another_Value;
 
-uint16_t Valor_1 = 0;
-uint16_t Valor_2 = 0;
+extern uint16_t Valor_1;
+extern uint16_t Valor_2;
 
-uint16_t loop_send_med;
-int8_t Tipo_Envio = 0;
-int8_t Configuration = 1;
-int8_t History = 2;
-int8_t Last_History = 3;
-int8_t History_By_Index = 4;
-int8_t Values = 5;
+extern uint16_t loop_send_med;
+extern int8_t Tipo_Envio;
+extern int8_t Configuration;
+extern int8_t History;
+extern int8_t Last_History;
+extern int8_t History_By_Index;
+extern int8_t Values;
 
-bool Next_Sending = false;
+extern bool Next_Sending;
 
-bool impresion_log = false;
+extern bool impresion_log;
 
-int8_t Sensibilidad_Res = 0;
+extern int8_t Sensibilidad_Res;
 
 typedef struct
 {
@@ -228,11 +218,12 @@ typedef struct
   uint8_t temp;
   uint8_t battery;
   uint8_t antpwr;
+  uint8_t padding;  // Padding para alineación a 32 bytes (múltiplo de 4)
 } store_History;
 
-uint16_t History_Position = 0;
-uint16_t Sending_Position = 0;
-store_History History_value;
+extern uint16_t History_Position;
+extern uint16_t Sending_Position;
+extern store_History History_value;
 
 typedef struct
 {
@@ -265,10 +256,11 @@ typedef struct
   uint8_t month;
   uint16_t year;
   uint16_t last_history;
-  store_History history[Size_Memory_History];
+  // NOTA: Se removió el array history[Size_Memory_History] para ahorrar RAM
+  // Ahora los historiales se manejan con History_Manager.h
 } store_flash;
 
-store_flash Flash_array;
+extern store_flash Flash_array;
 /*
 uint8_t Flash_storage_datos_init[SIZE_FLASH]=
 {0x33,0x22,                     // Company                        Comienza en 0
@@ -298,6 +290,6 @@ Comienza en 29
 0x1,0x0,0x1,                     // Version de la app  32,33,34
 0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};  // comienza en 35
 */
-store_flash Flash_Factory;
+extern store_flash Flash_Factory;
 
 #endif // __VARIABLES_H

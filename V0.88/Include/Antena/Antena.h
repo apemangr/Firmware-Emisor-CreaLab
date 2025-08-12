@@ -19,6 +19,10 @@
 #include "nrf_drv_saadc.h"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
+
+// Include del nuevo sistema de gestión de historiales
+#include "History_Manager.h"
+#include "History_Adapter.h"
 #include "nrf_log_default_backends.h"
 #include "nrf_pwr_mgmt.h"
 #include "nrf_sdh.h"
@@ -669,23 +673,17 @@ static void nus_data_handler(ble_nus_evt_t *p_evt)
 		if ((p_evt->params.rx_data.p_data[0] == '9') &&
 			(p_evt->params.rx_data.p_data[1] == '7'))
 		{
-
-			memset(&Flash_array.history, 0, sizeof(Flash_array.history));
-			/*
-			for (int loop_med = 0; loop_med < Size_Memory_History; loop_med++) {
-
-			  Flash_array.history[loop_med].Contador = 0;
-			  Flash_array.history[loop_med].V1 = 0;
-			  Flash_array.history[loop_med].V2 = 0;
-			  Flash_array.history[loop_med].battery = 0;
+			// Limpiar historial usando el nuevo sistema
+			ret_code_t rc = clear_all_history();
+			if (rc == NRF_SUCCESS)
+			{
+				NRF_LOG_INFO("Historial limpiado correctamente");
+				Send_Confirmation_OK();
 			}
-			*/
-
-			History_Position = 0;
-			Flash_array.last_history = History_Position;
-			Flash_array.Sending_Position = 0;
-			Write_Flash = true;
-			Send_Confirmation_OK();
+			else
+			{
+				NRF_LOG_ERROR("Error limpiando historial: %d", rc);
+			}
 		}
 
 		// 98 envio de historia
@@ -732,49 +730,51 @@ void Next_Transmition()
 	{
 		if (loop_send_med < (Total_sendig))
 		{
+			// Leer registro de historial usando el nuevo sistema
+			store_History current_record;
+			ret_code_t rc = get_history_record(loop_send_med, &current_record);
+			
+			if (rc != NRF_SUCCESS)
+			{
+				NRF_LOG_ERROR("Error leyendo historial %d: %d", loop_send_med, rc);
+				// Usar valores por defecto en caso de error
+				memset(&current_record, 0, sizeof(current_record));
+			}
 
 			position = 0;
 			data_array[position] = 0x98;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].day & 0xFF);
+			data_array[position] = (current_record.day & 0xFF);
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].month & 0xFF);
+			data_array[position] = (current_record.month & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].year >> 8) & 0xFF;
+			data_array[position] = (current_record.year >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].year & 0xFF);
+			data_array[position] = (current_record.year & 0xFF);
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].hour & 0xFF);
+			data_array[position] = (current_record.hour & 0xFF);
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].minute & 0xFF);
+			data_array[position] = (current_record.minute & 0xFF);
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].second & 0xFF);
+			data_array[position] = (current_record.second & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].Contador >> 24) & 0xFF;
+			data_array[position] = (current_record.Contador >> 24) & 0xFF;
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].Contador >> 16) & 0xFF;
+			data_array[position] = (current_record.Contador >> 16) & 0xFF;
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].Contador >> 8) & 0xFF;
+			data_array[position] = (current_record.Contador >> 8) & 0xFF;
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].Contador & 0xFF);
+			data_array[position] = (current_record.Contador & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V1 >> 8) & 0xFF;
+			data_array[position] = (current_record.V1 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V1 & 0xFF);
+			data_array[position] = (current_record.V1 & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V2 >> 8) & 0xFF;
+			data_array[position] = (current_record.V2 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V2 & 0xFF);
+			data_array[position] = (current_record.V2 & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].battery & 0xFF);
+			data_array[position] = (current_record.battery & 0xFF);
 			position++;
 			data_array[position] = (Flash_array.mac_original[0]);
 			position++;
@@ -802,39 +802,33 @@ void Next_Transmition()
 			position++;
 
 			// *** Nuevos Campos ****
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V3 >> 8) & 0xFF;
+			data_array[position] = (current_record.V3 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V3 & 0xFF);
+			data_array[position] = (current_record.V3 & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V4 >> 8) & 0xFF;
+			data_array[position] = (current_record.V4 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V4 & 0xFF);
+			data_array[position] = (current_record.V4 & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V5 >> 8) & 0xFF;
+			data_array[position] = (current_record.V5 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V5 & 0xFF);
+			data_array[position] = (current_record.V5 & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V6 >> 8) & 0xFF;
+			data_array[position] = (current_record.V6 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V6 & 0xFF);
+			data_array[position] = (current_record.V6 & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V7 >> 8) & 0xFF;
+			data_array[position] = (current_record.V7 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V7 & 0xFF);
+			data_array[position] = (current_record.V7 & 0xFF);
 			position++;
-			data_array[position] =
-				(Flash_array.history[loop_send_med].V8 >> 8) & 0xFF;
+			data_array[position] = (current_record.V8 >> 8) & 0xFF;
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].V8 & 0xFF);
+			data_array[position] = (current_record.V8 & 0xFF);
 			position++;
-			data_array[position] = (temp & 0xFF);
+			data_array[position] = (current_record.temp & 0xFF);
 			position++;
-			data_array[position] = (Flash_array.history[loop_send_med].antpwr & 0xFF);
+			data_array[position] = (current_record.antpwr & 0xFF);
 			position++;
 			data_array[position] = 1;
 			position++;
@@ -874,34 +868,31 @@ void Next_Transmition()
 		else
 			last_pos = 0; // O puedes abortar el envío si no hay datos
 
-		// Opcional: abortar si no hay historial
-		// if (Flash_array.last_history == 0 && )
-		// {
-		// 	NRF_LOG_RAW_INFO("No hay historial para enviar (comando 96)\r\n");
-		// 	Next_Sending = false;
-		// 	Tipo_Envio = 0;
-		// 	return;
-		// }
+		// Leer el último registro usando el nuevo sistema
+		store_History last_record;
+		ret_code_t rc = get_history_record(last_pos, &last_record);
+		
+		if (rc != NRF_SUCCESS)
+		{
+			NRF_LOG_ERROR("Error leyendo último historial para Values: %d", rc);
+			// Usar valores por defecto en caso de error
+			memset(&last_record, 0, sizeof(last_record));
+		}
 
 		data_array[position++] = 0x96;
-		data_array[position++] = (Flash_array.history[last_pos].V1 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_pos].V1 & 0xFF;
-		data_array[position++] = (Flash_array.history[last_pos].V2 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_pos].V2 & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_pos].Contador >> 24) & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_pos].Contador >> 16) & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_pos].Contador >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_pos].Contador & 0xFF;
+		data_array[position++] = (last_record.V1 >> 8) & 0xFF;
+		data_array[position++] = last_record.V1 & 0xFF;
+		data_array[position++] = (last_record.V2 >> 8) & 0xFF;
+		data_array[position++] = last_record.V2 & 0xFF;
+		data_array[position++] = (last_record.Contador >> 24) & 0xFF;
+		data_array[position++] = (last_record.Contador >> 16) & 0xFF;
+		data_array[position++] = (last_record.Contador >> 8) & 0xFF;
+		data_array[position++] = last_record.Contador & 0xFF;
 
 		// Formatea todo lo que se va a enviar y muestralo por consola con NRF_LOG_RAW_INFO
 		NRF_LOG_RAW_INFO("Enviando valores de los ADC's y contador:\r\n");
 		NRF_LOG_RAW_INFO("V1: %d, V2: %d, Contador: %d\r\n",
-						 Flash_array.history[last_pos].V1,
-						 Flash_array.history[last_pos].V2,
-						 Flash_array.history[last_pos].Contador);
+						 last_record.V1, last_record.V2, last_record.Contador);
 		index = position;
 		Next_Sending = false;
 		send_data_Nus(index, data_array);
@@ -914,24 +905,35 @@ void Next_Transmition()
 		if (Requested_History_Index < Size_Memory_History)
 		{
 			uint16_t idx = Requested_History_Index;
-			data_array[position++] =
-				0x98; // Código para identificar el envío por índice
-			data_array[position++] = Flash_array.history[idx].day;
-			data_array[position++] = Flash_array.history[idx].month;
-			data_array[position++] = (Flash_array.history[idx].year >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].year & 0xFF;
-			data_array[position++] = Flash_array.history[idx].hour;
-			data_array[position++] = Flash_array.history[idx].minute;
-			data_array[position++] = Flash_array.history[idx].second;
-			data_array[position++] = (Flash_array.history[idx].Contador >> 24) & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].Contador >> 16) & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].Contador >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].Contador & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].V1 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V1 & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].V2 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V2 & 0xFF;
-			data_array[position++] = Flash_array.history[idx].battery;
+			
+			// Leer registro específico usando el nuevo sistema
+			store_History requested_record;
+			ret_code_t rc = get_history_record(idx, &requested_record);
+			
+			if (rc != NRF_SUCCESS)
+			{
+				NRF_LOG_ERROR("Error leyendo historial por índice %d: %d", idx, rc);
+				// Usar valores por defecto en caso de error
+				memset(&requested_record, 0, sizeof(requested_record));
+			}
+			
+			data_array[position++] = 0x98; // Código para identificar el envío por índice
+			data_array[position++] = requested_record.day;
+			data_array[position++] = requested_record.month;
+			data_array[position++] = (requested_record.year >> 8) & 0xFF;
+			data_array[position++] = requested_record.year & 0xFF;
+			data_array[position++] = requested_record.hour;
+			data_array[position++] = requested_record.minute;
+			data_array[position++] = requested_record.second;
+			data_array[position++] = (requested_record.Contador >> 24) & 0xFF;
+			data_array[position++] = (requested_record.Contador >> 16) & 0xFF;
+			data_array[position++] = (requested_record.Contador >> 8) & 0xFF;
+			data_array[position++] = requested_record.Contador & 0xFF;
+			data_array[position++] = (requested_record.V1 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V1 & 0xFF;
+			data_array[position++] = (requested_record.V2 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V2 & 0xFF;
+			data_array[position++] = requested_record.battery;
 
 			// MAC original (6 bytes)
 			for (int i = 0; i < 6; i++)
@@ -941,18 +943,18 @@ void Next_Transmition()
 				data_array[position++] = Flash_array.mac_custom[i];
 
 			// V3 a V8
-			data_array[position++] = (Flash_array.history[idx].V3 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V3 & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].V4 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V4 & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].V5 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V5 & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].V6 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V6 & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].V7 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V7 & 0xFF;
-			data_array[position++] = (Flash_array.history[idx].V8 >> 8) & 0xFF;
-			data_array[position++] = Flash_array.history[idx].V8 & 0xFF;
+			data_array[position++] = (requested_record.V3 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V3 & 0xFF;
+			data_array[position++] = (requested_record.V4 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V4 & 0xFF;
+			data_array[position++] = (requested_record.V5 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V5 & 0xFF;
+			data_array[position++] = (requested_record.V6 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V6 & 0xFF;
+			data_array[position++] = (requested_record.V7 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V7 & 0xFF;
+			data_array[position++] = (requested_record.V8 >> 8) & 0xFF;
+			data_array[position++] = requested_record.V8 & 0xFF;
 
 			// Número de historial enviado
 			data_array[position++] = (idx >> 8) & 0xFF;
@@ -973,44 +975,43 @@ void Next_Transmition()
 	if (Tipo_Envio == Last_History)
 	{
 		uint16_t last_position;
-		// if (Flash_array.last_history > 0)
-		// {
-		//   last_position = Flash_array.last_history - 1; // Obtiene la posición
-		//   del último historial
-		// }
-
-		last_position = Flash_array.last_history -
-						1; // Obtiene la posición del último historial
+		last_position = Flash_array.last_history - 1; // Obtiene la posición del último historial
 		if (last_position < 0 || last_position >= Size_Memory_History)
 		{
 			NRF_LOG_RAW_INFO("\nEvitando overflow, se setea a cero\r\n");
 			last_position = 0; // Asegura que no sea menor a 0
 		}
+		
+		// Leer el último registro usando el nuevo sistema
+		store_History last_record;
+		ret_code_t rc = get_history_record(last_position, &last_record);
+		
+		if (rc != NRF_SUCCESS)
+		{
+			NRF_LOG_ERROR("Error leyendo último historial para Last_History: %d", rc);
+			// Usar valores por defecto en caso de error
+			memset(&last_record, 0, sizeof(last_record));
+		}
+		
 		position = 0;
 
 		data_array[position++] = 0x08;
-		data_array[position++] = Flash_array.history[last_position].day;
-		data_array[position++] = Flash_array.history[last_position].month;
-		data_array[position++] =
-			(Flash_array.history[last_position].year >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].year & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].hour;
-		data_array[position++] = Flash_array.history[last_position].minute;
-		data_array[position++] = Flash_array.history[last_position].second;
-		data_array[position++] =
-			(Flash_array.history[last_position].Contador >> 24) & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].Contador >> 16) & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].Contador >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].Contador & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].V1 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V1 & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].V2 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V2 & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].battery;
+		data_array[position++] = last_record.day;
+		data_array[position++] = last_record.month;
+		data_array[position++] = (last_record.year >> 8) & 0xFF;
+		data_array[position++] = last_record.year & 0xFF;
+		data_array[position++] = last_record.hour;
+		data_array[position++] = last_record.minute;
+		data_array[position++] = last_record.second;
+		data_array[position++] = (last_record.Contador >> 24) & 0xFF;
+		data_array[position++] = (last_record.Contador >> 16) & 0xFF;
+		data_array[position++] = (last_record.Contador >> 8) & 0xFF;
+		data_array[position++] = last_record.Contador & 0xFF;
+		data_array[position++] = (last_record.V1 >> 8) & 0xFF;
+		data_array[position++] = last_record.V1 & 0xFF;
+		data_array[position++] = (last_record.V2 >> 8) & 0xFF;
+		data_array[position++] = last_record.V2 & 0xFF;
+		data_array[position++] = last_record.battery;
 
 		// MAC original (6 bytes)
 		data_array[position++] = Flash_array.mac_original[0];
@@ -1029,30 +1030,22 @@ void Next_Transmition()
 		data_array[position++] = Flash_array.mac_custom[5];
 
 		// Valores V3 a V8 (2 bytes cada uno)
-		data_array[position++] =
-			(Flash_array.history[last_position].V3 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V3 & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].V4 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V4 & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].V5 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V5 & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].V6 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V6 & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].V7 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V7 & 0xFF;
-		data_array[position++] =
-			(Flash_array.history[last_position].V8 >> 8) & 0xFF;
-		data_array[position++] = Flash_array.history[last_position].V8 & 0xFF;
+		data_array[position++] = (last_record.V3 >> 8) & 0xFF;
+		data_array[position++] = last_record.V3 & 0xFF;
+		data_array[position++] = (last_record.V4 >> 8) & 0xFF;
+		data_array[position++] = last_record.V4 & 0xFF;
+		data_array[position++] = (last_record.V5 >> 8) & 0xFF;
+		data_array[position++] = last_record.V5 & 0xFF;
+		data_array[position++] = (last_record.V6 >> 8) & 0xFF;
+		data_array[position++] = last_record.V6 & 0xFF;
+		data_array[position++] = (last_record.V7 >> 8) & 0xFF;
+		data_array[position++] = last_record.V7 & 0xFF;
+		data_array[position++] = (last_record.V8 >> 8) & 0xFF;
+		data_array[position++] = last_record.V8 & 0xFF;
 
-		// Temperatura del modulo
-		// Muestra la temperatura del último historial
-		NRF_LOG_RAW_INFO("Temperatura del último historial: %d\r\n",
-						 temp);
-		data_array[position++] = (temp & 0xFF);
+		// Temperatura del modulo - usar la del registro
+		NRF_LOG_RAW_INFO("Temperatura del último historial: %d\r\n", last_record.temp);
+		data_array[position++] = (last_record.temp & 0xFF);
 
 		// Número de historial
 		data_array[position++] = (last_position >> 8) & 0xFF;
@@ -1627,31 +1620,51 @@ static void advertising_init(void)
 
 	if (History_Position == 0)
 	{
-		Flash_array.history[History_Position].day = t.date;
-		Flash_array.history[History_Position].month = t.month;
-		Flash_array.history[History_Position].year = t.year;
-		Flash_array.history[History_Position].hour = t.hour;
-		Flash_array.history[History_Position].minute = t.minute;
-		Flash_array.history[History_Position].second = t.second;
-		Flash_array.history[History_Position].Contador = contador;
-		Flash_array.history[History_Position].V1 = Pista1;
-		Flash_array.history[History_Position].V2 = Pista2;
-		Flash_array.history[History_Position].V3 = 1;
-		Flash_array.history[History_Position].V4 = 2;
-		Flash_array.history[History_Position].V5 = 3;
-		Flash_array.history[History_Position].V6 = 4;
-		Flash_array.history[History_Position].V7 = 5;
-		Flash_array.history[History_Position].V8 = 6;
-		Flash_array.history[History_Position].battery = Battery_level;
-		History_Position++;
+		// Crear nuevo registro para el historial
+		store_History new_record;
+		new_record.day = t.date;
+		new_record.month = t.month;
+		new_record.year = t.year;
+		new_record.hour = t.hour;
+		new_record.minute = t.minute;
+		new_record.second = t.second;
+		new_record.Contador = contador;
+		new_record.V1 = Pista1;
+		new_record.V2 = Pista2;
+		new_record.V3 = 1;
+		new_record.V4 = 2;
+		new_record.V5 = 3;
+		new_record.V6 = 4;
+		new_record.V7 = 5;
+		new_record.V8 = 6;
+		new_record.battery = Battery_level;
+		new_record.temp = temp;  // Añadido campo temperatura
+		new_record.antpwr = Potencia_antenna;  // Añadido campo potencia antena
 
-		Flash_array.last_history = History_Position;
+		// Guardar usando el nuevo sistema
+		ret_code_t rc = set_history_record(History_Position, &new_record);
+		if (rc != NRF_SUCCESS)
+		{
+			NRF_LOG_ERROR("Error guardando primer historial: %d", rc);
+		}
+		// History_Position se actualiza automáticamente en set_history_record()
 	}
 
 	if (History_Position != 0)
 	{
-		Valor_1 = Flash_array.history[History_Position - 1].V1;
-		Valor_2 = Flash_array.history[History_Position - 1].V2;
+		// Leer el último registro usando el nuevo sistema
+		store_History last_record;
+		if (get_history_record(History_Position - 1, &last_record) == NRF_SUCCESS)
+		{
+			Valor_1 = last_record.V1;
+			Valor_2 = last_record.V2;
+		}
+		else
+		{
+			NRF_LOG_WARNING("Error leyendo último historial, usando valores por defecto");
+			Valor_1 = 0;
+			Valor_2 = 0;
+		}
 
 		// Se elimina la logica de cambio de sensibilidad por una que grabe un dato
 		// por dia.
@@ -1673,32 +1686,37 @@ static void advertising_init(void)
 			NRF_LOG_RAW_INFO("GRABACION HISTORIA posision/total %d/%d \r\n",
 							 History_Position, Size_Memory_History);
 			NRF_LOG_FLUSH();
-			Flash_array.history[History_Position].day = t.date;
-			Flash_array.history[History_Position].month = t.month;
-			Flash_array.history[History_Position].year = t.year;
-			Flash_array.history[History_Position].hour = t.hour;
-			Flash_array.history[History_Position].minute = t.minute;
-			Flash_array.history[History_Position].second = t.second;
-			Flash_array.history[History_Position].Contador = contador;
-			Flash_array.history[History_Position].V1 = Pista1;
-			Flash_array.history[History_Position].V2 = Pista2;
-			Flash_array.history[History_Position].V3 = 1;
-			Flash_array.history[History_Position].V4 = 2;
-			Flash_array.history[History_Position].V5 = 3;
-			Flash_array.history[History_Position].V6 = 4;
-			Flash_array.history[History_Position].V7 = 5;
-			Flash_array.history[History_Position].V8 = 6;
-			Flash_array.history[History_Position].battery = Battery_level;
-			History_Position++;
+			
+			// Crear nuevo registro para el historial
+			store_History new_record;
+			new_record.day = t.date;
+			new_record.month = t.month;
+			new_record.year = t.year;
+			new_record.hour = t.hour;
+			new_record.minute = t.minute;
+			new_record.second = t.second;
+			new_record.Contador = contador;
+			new_record.V1 = Pista1;
+			new_record.V2 = Pista2;
+			new_record.V3 = 1;
+			new_record.V4 = 2;
+			new_record.V5 = 3;
+			new_record.V6 = 4;
+			new_record.V7 = 5;
+			new_record.V8 = 6;
+			new_record.battery = Battery_level;
+			new_record.temp = temp;  // Añadido campo temperatura
+			new_record.antpwr = Potencia_antenna;  // Añadido campo potencia antena
+			new_record.padding = 0;  // Inicializar padding para alineación
 
-			if (History_Position >= (Size_Memory_History))
+			// Guardar usando el nuevo sistema
+			ret_code_t rc = set_history_record(History_Position, &new_record);
+			if (rc != NRF_SUCCESS)
 			{
-
-				History_Position = 0;
-				Flash_array.Sending_Position = 1;
+				NRF_LOG_ERROR("Error guardando historial: %d", rc);
 			}
-
-			Flash_array.last_history = History_Position;
+			// History_Position y Flash_array.last_history se actualizan automáticamente
+			
 			Another_Value = false;
 		}
 	}
@@ -1707,20 +1725,27 @@ static void advertising_init(void)
 	{
 		for (int loop_med = 0; loop_med <= (History_Position ); loop_med++)
 		{
-			NRF_LOG_RAW_INFO("historia %d: - fecha %d/%d/%d ", loop_med,
-							 Flash_array.history[loop_med].day,
-							 Flash_array.history[loop_med].month,
-							 Flash_array.history[loop_med].year);
-			NRF_LOG_FLUSH();
-			NRF_LOG_RAW_INFO("%d:%d:%d ", Flash_array.history[loop_med].hour,
-							 Flash_array.history[loop_med].minute,
-							 Flash_array.history[loop_med].second);
-			NRF_LOG_FLUSH();
-			NRF_LOG_RAW_INFO(
-				"Cont: %d :  %d/%d/%d \r\n", Flash_array.history[loop_med].Contador,
-				Flash_array.history[loop_med].V1, Flash_array.history[loop_med].V2,
-				Flash_array.history[loop_med].battery);
-			NRF_LOG_FLUSH();
+			// Leer registro para impresión usando el nuevo sistema
+			store_History log_record;
+			ret_code_t rc = get_history_record(loop_med, &log_record);
+			
+			if (rc == NRF_SUCCESS)
+			{
+				NRF_LOG_RAW_INFO("historia %d: - fecha %d/%d/%d ", loop_med,
+								 log_record.day, log_record.month, log_record.year);
+				NRF_LOG_FLUSH();
+				NRF_LOG_RAW_INFO("%d:%d:%d ", log_record.hour,
+								 log_record.minute, log_record.second);
+				NRF_LOG_FLUSH();
+				NRF_LOG_RAW_INFO(
+					"Cont: %d :  %d/%d/%d \r\n", log_record.Contador,
+					log_record.V1, log_record.V2, log_record.battery);
+				NRF_LOG_FLUSH();
+			}
+			else
+			{
+				NRF_LOG_WARNING("Error leyendo registro %d para log: %d", loop_med, rc);
+			}
 			nrf_delay_ms(20);
 		}
 	}
