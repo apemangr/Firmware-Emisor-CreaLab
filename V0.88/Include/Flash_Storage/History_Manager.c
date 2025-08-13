@@ -76,13 +76,13 @@ ret_code_t history_manager_init(void)
     g_history_manager.total_records = 0;
     g_history_manager.next_flash_index = 0;
     g_history_manager.current_page = 0;
-    g_history_manager.circular_mode = false;
+    g_history_manager.circular_mode = false; // Ya no se usa modo circular
     
     // Leer metadatos desde flash (primer registro podría ser metadatos)
     // Por simplicidad, asumimos que empezamos desde cero
     // En una implementación completa, aquí leerías los metadatos guardados
     
-    NRF_LOG_INFO("History Manager inicializado correctamente");
+    NRF_LOG_INFO("History Manager inicializado correctamente (sin modo circular)");
     return NRF_SUCCESS;
 }
 
@@ -92,6 +92,13 @@ ret_code_t history_add_record(const store_History* record)
     {
         NRF_LOG_ERROR("history_add_record: record es NULL");
         return NRF_ERROR_NULL;
+    }
+    
+    // Verificar si ya se alcanzó el límite máximo
+    if (g_history_manager.total_records >= MAX_HISTORY_RECORDS)
+    {
+        NRF_LOG_WARNING("Límite máximo de historiales alcanzado (%d). No se guardará el nuevo registro.", MAX_HISTORY_RECORDS);
+        return NRF_ERROR_NO_MEM;
     }
     
     NRF_LOG_DEBUG("Agregando registro al historial. Total actual: %d", g_history_manager.total_records);
@@ -141,13 +148,13 @@ ret_code_t history_add_record(const store_History* record)
     g_history_manager.total_records++;
     g_history_manager.next_flash_index++;
     
-    // Verificar si necesitamos modo circular
-    if (g_history_manager.next_flash_index >= MAX_HISTORY_RECORDS)
-    {
-        g_history_manager.circular_mode = true;
-        g_history_manager.next_flash_index = 0;
-        NRF_LOG_INFO("Entrando en modo circular del historial");
-    }
+    // Ya no entramos en modo circular, simplemente detenemos la grabación al llegar al límite
+    // if (g_history_manager.next_flash_index >= MAX_HISTORY_RECORDS)
+    // {
+    //     g_history_manager.circular_mode = true;
+    //     g_history_manager.next_flash_index = 0;
+    //     NRF_LOG_INFO("Entrando en modo circular del historial");
+    // }
     
     // Escribir inmediatamente a flash para mantener persistencia
     ret_code_t rc = history_write_cache_to_flash(cache_slot);
@@ -254,6 +261,7 @@ ret_code_t history_flush_cache(void)
 
 uint16_t history_get_total_count(void)
 {
+    // Limitar el retorno al máximo permitido
     return g_history_manager.total_records > MAX_HISTORY_RECORDS ? 
            MAX_HISTORY_RECORDS : g_history_manager.total_records;
 }

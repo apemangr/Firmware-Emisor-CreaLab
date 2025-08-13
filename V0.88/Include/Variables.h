@@ -75,7 +75,7 @@
 
 #define SIZE_FLASH 8000 // debe guardar de multiplos de 32 bytes
 
-#define Size_Memory_History 250
+#define Size_Memory_History 500
 
 // **********************************************Fstorage
 

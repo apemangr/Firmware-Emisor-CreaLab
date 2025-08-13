@@ -25,15 +25,29 @@ ret_code_t set_history_record(uint16_t index, const store_History* record)
     // Si es un nuevo registro (índice actual), añadirlo
     if (index == History_Position)
     {
+        // Verificar si ya se alcanzó el límite máximo
+        if (History_Position >= Size_Memory_History)
+        {
+            NRF_LOG_WARNING("Límite máximo de historiales alcanzado (%d). No se guardará el nuevo registro.", Size_Memory_History);
+            return NRF_ERROR_NO_MEM;
+        }
+        
         ret_code_t rc = history_add_record(record);
         if (rc == NRF_SUCCESS)
         {
             History_Position++;
-            if (History_Position >= Size_Memory_History)
-            {
-                History_Position = 0; // Modo circular
-            }
+            // Ya no reiniciamos History_Position al llegar al límite
+            // if (History_Position >= Size_Memory_History)
+            // {
+            //     History_Position = 0; // Modo circular
+            // }
             Flash_array.last_history = History_Position;
+            
+            NRF_LOG_INFO("Historial guardado. Posición actual: %d/%d", History_Position, Size_Memory_History);
+        }
+        else if (rc == NRF_ERROR_NO_MEM)
+        {
+            NRF_LOG_WARNING("No se pudo guardar el historial: límite alcanzado");
         }
         return rc;
     }
@@ -90,4 +104,9 @@ ret_code_t clear_all_history(void)
 uint16_t get_total_history_count(void)
 {
     return history_get_total_count();
+}
+
+bool is_history_limit_reached(void)
+{
+    return (History_Position >= Size_Memory_History);
 }

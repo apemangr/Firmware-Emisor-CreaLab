@@ -1683,39 +1683,53 @@ static void advertising_init(void)
 
 		if (Another_Value)
 		{
-			NRF_LOG_RAW_INFO("GRABACION HISTORIA posision/total %d/%d \r\n",
-							 History_Position, Size_Memory_History);
-			NRF_LOG_FLUSH();
-			
-			// Crear nuevo registro para el historial
-			store_History new_record;
-			new_record.day = t.date;
-			new_record.month = t.month;
-			new_record.year = t.year;
-			new_record.hour = t.hour;
-			new_record.minute = t.minute;
-			new_record.second = t.second;
-			new_record.Contador = contador;
-			new_record.V1 = Pista1;
-			new_record.V2 = Pista2;
-			new_record.V3 = 1;
-			new_record.V4 = 2;
-			new_record.V5 = 3;
-			new_record.V6 = 4;
-			new_record.V7 = 5;
-			new_record.V8 = 6;
-			new_record.battery = Battery_level;
-			new_record.temp = temp;  // Añadido campo temperatura
-			new_record.antpwr = Potencia_antenna;  // Añadido campo potencia antena
-			new_record.padding = 0;  // Inicializar padding para alineación
-
-			// Guardar usando el nuevo sistema
-			ret_code_t rc = set_history_record(History_Position, &new_record);
-			if (rc != NRF_SUCCESS)
+			// Verificar si se ha alcanzado el límite antes de intentar grabar
+			if (is_history_limit_reached())
 			{
-				NRF_LOG_ERROR("Error guardando historial: %d", rc);
+				NRF_LOG_RAW_INFO("LIMITE DE HISTORIALES ALCANZADO (%d/%d). Manteniendo información sin grabar nuevos registros.\r\n",
+								 History_Position, Size_Memory_History);
+				NRF_LOG_FLUSH();
 			}
-			// History_Position y Flash_array.last_history se actualizan automáticamente
+			else
+			{
+				NRF_LOG_RAW_INFO("GRABACION HISTORIA posision/total %d/%d \r\n",
+								 History_Position, Size_Memory_History);
+				NRF_LOG_FLUSH();
+				
+				// Crear nuevo registro para el historial
+				store_History new_record;
+				new_record.day = t.date;
+				new_record.month = t.month;
+				new_record.year = t.year;
+				new_record.hour = t.hour;
+				new_record.minute = t.minute;
+				new_record.second = t.second;
+				new_record.Contador = contador;
+				new_record.V1 = Pista1;
+				new_record.V2 = Pista2;
+				new_record.V3 = 1;
+				new_record.V4 = 2;
+				new_record.V5 = 3;
+				new_record.V6 = 4;
+				new_record.V7 = 5;
+				new_record.V8 = 6;
+				new_record.battery = Battery_level;
+				new_record.temp = temp;  // Añadido campo temperatura
+				new_record.antpwr = Potencia_antenna;  // Añadido campo potencia antena
+				new_record.padding = 0;  // Inicializar padding para alineación
+
+				// Guardar usando el nuevo sistema
+				ret_code_t rc = set_history_record(History_Position, &new_record);
+				if (rc == NRF_ERROR_NO_MEM)
+				{
+					NRF_LOG_WARNING("Límite de historiales alcanzado. No se guardó el registro.");
+				}
+				else if (rc != NRF_SUCCESS)
+				{
+					NRF_LOG_ERROR("Error guardando historial: %d", rc);
+				}
+				// History_Position y Flash_array.last_history se actualizan automáticamente
+			}
 			
 			Another_Value = false;
 		}

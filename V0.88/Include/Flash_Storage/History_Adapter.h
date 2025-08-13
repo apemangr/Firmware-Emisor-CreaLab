@@ -1,6 +1,7 @@
 #ifndef __HISTORY_ADAPTER_H
 #define __HISTORY_ADAPTER_H
 
+#include <stdbool.h>
 #include "Variables.h"
 #include "History_Manager.h"
 
@@ -29,5 +30,8 @@ ret_code_t clear_all_history(void);
 
 // Función para obtener el total de registros
 uint16_t get_total_history_count(void);
+
+// Función para verificar si se alcanzó el límite máximo de historiales
+bool is_history_limit_reached(void);
 
 #endif // __HISTORY_ADAPTER_H

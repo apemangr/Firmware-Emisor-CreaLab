@@ -11,7 +11,7 @@
 #define HISTORY_FLASH_END_ADDR      0x75FFF    // ~24KB para historiales  
 #define HISTORY_PAGE_SIZE           4096       // Tamaño de página flash
 #define HISTORY_RECORDS_PER_PAGE    (HISTORY_PAGE_SIZE / sizeof(store_History))
-#define MAX_HISTORY_RECORDS         250        // Mantener el límite actual
+#define MAX_HISTORY_RECORDS         500        // Incrementado de 250 a 500
 #define HISTORY_CACHE_SIZE          5          // Solo 5 registros en RAM
 
 // Estados del caché
