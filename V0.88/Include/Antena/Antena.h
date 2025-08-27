@@ -32,6 +32,9 @@
 
 #include "Temperature_chip.h"
 
+// Function declarations
+void Next_Transmition(void);
+
 BLE_NUS_DEF(m_nus,
 			NRF_SDH_BLE_TOTAL_LINK_COUNT); /**< BLE NUS service instance. */
 NRF_BLE_GATT_DEF(m_gatt);				   /**< GATT module instance. */
@@ -385,7 +388,7 @@ static void nus_data_handler(ble_nus_evt_t *p_evt)
 		{
 			// Extrae los dígitos después de '09'
 			uint16_t idx = 0;
-			uint8_t *ptr = &p_evt->params.rx_data.p_data[2];
+			const uint8_t *ptr = &p_evt->params.rx_data.p_data[2];
 			uint8_t len = p_evt->params.rx_data.length;
 			// Calcula cuántos dígitos hay (desde el tercer byte hasta el final)
 			for (uint8_t i = 2; i < len; i++)
@@ -710,7 +713,7 @@ static void nus_data_handler(ble_nus_evt_t *p_evt)
 	}
 }
 
-void Next_Transmition()
+void Next_Transmition(void)
 {
 	static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
 	static uint8_t index = 2;
