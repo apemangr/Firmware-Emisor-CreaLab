@@ -29,9 +29,12 @@ ret_code_t set_history_record(uint16_t index, const store_History* record)
         if (rc == NRF_SUCCESS)
         {
             History_Position++;
-            if (History_Position >= Size_Memory_History)
+            // Verificar si hemos llegado al límite, pero sin resetear
+            if (History_Position >= MAX_HISTORY_RECORDS)
             {
-                History_Position = 0; // Modo circular
+                NRF_LOG_WARNING("Se ha alcanzado el límite máximo de historiales: %d", MAX_HISTORY_RECORDS);
+                // Mantener History_Position en el límite para evitar sobrescribir
+                History_Position = MAX_HISTORY_RECORDS;
             }
             Flash_array.last_history = History_Position;
         }
@@ -41,7 +44,7 @@ ret_code_t set_history_record(uint16_t index, const store_History* record)
     {
         // Para actualizaciones de registros existentes, necesitarías
         // implementar una función de actualización en el history manager
-        NRF_LOG_WARNING("Actualización de registro existente no implementada");
+        NRF_LOG_RAW_INFO("Actualización de registro existente no implementada");
         return NRF_ERROR_NOT_SUPPORTED;
     }
 }

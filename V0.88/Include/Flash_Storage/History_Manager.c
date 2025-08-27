@@ -76,7 +76,6 @@ ret_code_t history_manager_init(void)
     g_history_manager.total_records = 0;
     g_history_manager.next_flash_index = 0;
     g_history_manager.current_page = 0;
-    g_history_manager.circular_mode = false;
     
     // Leer metadatos desde flash (primer registro podría ser metadatos)
     // Por simplicidad, asumimos que empezamos desde cero
@@ -95,6 +94,13 @@ ret_code_t history_add_record(const store_History* record)
     }
     
     NRF_LOG_DEBUG("Agregando registro al historial. Total actual: %d", g_history_manager.total_records);
+    
+    // Verificar si hemos llegado al límite máximo ANTES de hacer cualquier cambio
+    if (g_history_manager.next_flash_index >= MAX_HISTORY_RECORDS)
+    {
+        NRF_LOG_WARNING("Historial lleno - no se pueden guardar más registros. Máximo: %d", MAX_HISTORY_RECORDS);
+        return NRF_ERROR_NO_MEM;
+    }
     
     // Buscar slot libre en caché
     uint8_t cache_slot = history_get_free_cache_slot();
@@ -141,14 +147,6 @@ ret_code_t history_add_record(const store_History* record)
     g_history_manager.total_records++;
     g_history_manager.next_flash_index++;
     
-    // Verificar si necesitamos modo circular
-    if (g_history_manager.next_flash_index >= MAX_HISTORY_RECORDS)
-    {
-        g_history_manager.circular_mode = true;
-        g_history_manager.next_flash_index = 0;
-        NRF_LOG_INFO("Entrando en modo circular del historial");
-    }
-    
     // Escribir inmediatamente a flash para mantener persistencia
     ret_code_t rc = history_write_cache_to_flash(cache_slot);
     if (rc != NRF_SUCCESS)
@@ -158,11 +156,6 @@ ret_code_t history_add_record(const store_History* record)
         g_history_manager.cache[cache_slot].state = CACHE_EMPTY;
         g_history_manager.total_records--;
         g_history_manager.next_flash_index--;
-        if (g_history_manager.next_flash_index == 0 && g_history_manager.circular_mode)
-        {
-            g_history_manager.next_flash_index = MAX_HISTORY_RECORDS - 1;
-            g_history_manager.circular_mode = false;
-        }
         return rc;
     }
     
@@ -212,8 +205,8 @@ ret_code_t history_get_last_record(store_History* record)
         return NRF_ERROR_NOT_FOUND;
     }
     
-    uint16_t last_index = (g_history_manager.next_flash_index == 0 && g_history_manager.circular_mode) ? 
-                          MAX_HISTORY_RECORDS - 1 : g_history_manager.next_flash_index - 1;
+    // El último registro siempre es el anterior al next_flash_index
+    uint16_t last_index = g_history_manager.next_flash_index - 1;
     
     return history_get_record(last_index, record);
 }
@@ -225,7 +218,6 @@ ret_code_t history_clear_all(void)
     g_history_manager.current_cache_size = 0;
     g_history_manager.total_records = 0;
     g_history_manager.next_flash_index = 0;
-    g_history_manager.circular_mode = false;
     
     // Borrar todas las páginas de flash
     for (uint16_t page = 0; page < (HISTORY_FLASH_END_ADDR - HISTORY_FLASH_START_ADDR) / HISTORY_PAGE_SIZE; page++)
@@ -254,8 +246,7 @@ ret_code_t history_flush_cache(void)
 
 uint16_t history_get_total_count(void)
 {
-    return g_history_manager.total_records > MAX_HISTORY_RECORDS ? 
-           MAX_HISTORY_RECORDS : g_history_manager.total_records;
+    return g_history_manager.total_records;
 }
 
 ret_code_t history_get_record_range(uint16_t start_index, uint16_t count, store_History* records)

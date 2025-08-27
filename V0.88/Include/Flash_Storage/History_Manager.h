@@ -35,7 +35,6 @@ typedef struct {
     uint16_t total_records;        // Total de registros guardados
     uint16_t next_flash_index;     // Próximo índice a escribir en flash
     uint16_t current_page;         // Página actual en uso
-    bool circular_mode;            // Si ya llegamos al límite y empezamos a sobrescribir
 } history_manager_t;
 
 // Instancia global del gestor
