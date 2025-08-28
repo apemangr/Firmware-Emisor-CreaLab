@@ -29,11 +29,11 @@ static void history_fstorage_evt_handler(nrf_fstorage_evt_t *p_evt)
     switch (p_evt->id)
     {
     case NRF_FSTORAGE_EVT_WRITE_RESULT:
-        NRF_LOG_DEBUG("Historia: escribió %d bytes en dirección 0x%x", p_evt->len, p_evt->addr);
+        NRF_LOG_DEBUG("Historia: escribio %d bytes en direccion 0x%x", p_evt->len, p_evt->addr);
         break;
 
     case NRF_FSTORAGE_EVT_ERASE_RESULT:
-        NRF_LOG_DEBUG("Historia: borró página en dirección 0x%x", p_evt->addr);
+        NRF_LOG_DEBUG("Historia: borro pagina en direccion 0x%x", p_evt->addr);
         break;
 
     default:
@@ -119,7 +119,7 @@ ret_code_t history_add_record(const store_History *record)
     // Verificar si hemos llegado al límite máximo ANTES de hacer cualquier cambio
     if (g_history_manager.next_flash_index >= MAX_HISTORY_RECORDS)
     {
-        NRF_LOG_RAW_INFO("\n\nHistorial lleno - no se pueden guardar más registros. Máximo: %d\n",
+        NRF_LOG_RAW_INFO("\n\nHistorial lleno - no se pueden guardar mas registros. Maximo: %d\n",
                          MAX_HISTORY_RECORDS);
         return NRF_ERROR_NO_MEM;
     }
@@ -193,7 +193,7 @@ ret_code_t history_add_record(const store_History *record)
         return rc;
     }
 
-    NRF_LOG_RAW_INFO("\n\nNuevo registro añadido al historial. Total: %d, Flash index: %d",
+    NRF_LOG_RAW_INFO("\n\nNuevo registro anadido al historial. Total: %d, Flash index: %d",
                      g_history_manager.total_records,
                      g_history_manager.cache[cache_slot].flash_index);
     return NRF_SUCCESS;
@@ -365,11 +365,11 @@ static ret_code_t history_write_cache_to_flash(uint8_t cache_index)
 
     if (record_in_page == 0)
     {
-        NRF_LOG_RAW_INFO("\n\nBorrando página en dirección 0x%x", page_addr);
+        NRF_LOG_RAW_INFO("\n\nBorrando pagina en direccion 0x%x", page_addr);
         ret_code_t rc = nrf_fstorage_erase(&history_fstorage, page_addr, 1, NULL);
         if (rc != NRF_SUCCESS)
         {
-            NRF_LOG_ERROR("Error borrando página: %d en addr 0x%x", rc, page_addr);
+            NRF_LOG_ERROR("Error borrando pagina: %d en addr 0x%x", rc, page_addr);
             return rc;
         }
 
@@ -378,7 +378,7 @@ static ret_code_t history_write_cache_to_flash(uint8_t cache_index)
         NRF_LOG_DEBUG("Borrado completado");
     }
 
-    NRF_LOG_RAW_INFO("\nEscribiendo %d bytes a flash en dirección 0x%x", sizeof(store_History),
+    NRF_LOG_RAW_INFO("\nEscribiendo %d bytes a flash en direccion 0x%x", sizeof(store_History),
                      flash_addr);
 
     ret_code_t rc = nrf_fstorage_write(&history_fstorage, flash_addr,
@@ -387,7 +387,7 @@ static ret_code_t history_write_cache_to_flash(uint8_t cache_index)
 
     if (rc == NRF_SUCCESS)
     {
-        NRF_LOG_DEBUG("Comando de escritura enviado, esperando completación...");
+        NRF_LOG_DEBUG("Comando de escritura enviado, esperando completacion...");
         history_wait_for_flash_ready();
         g_history_manager.cache[cache_index].state = CACHE_CLEAN;
         NRF_LOG_DEBUG("Escritura completada exitosamente");

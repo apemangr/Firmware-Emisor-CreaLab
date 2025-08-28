@@ -298,14 +298,14 @@ uint32_t Flash_is_empty()
     sleep_in_time_ticker += (Flash_array.sleep_time[1] << 8);
     sleep_in_time_ticker += (Flash_array.sleep_time[2] << 0);
 
-    NRF_LOG_RAW_INFO("time sleep %i.... \r\n", sleep_in_time_ticker);
+    NRF_LOG_RAW_INFO("\nTIEMPO DORMIDO: %i [ms]\r\n", sleep_in_time_ticker);
     NRF_LOG_FLUSH();
 
     // Carga Tiempo de Advertising programado
     APP_ADV_DURATION = (Flash_array.adv_time[0] << 8);
     APP_ADV_DURATION += (Flash_array.adv_time[1] << 0);
 
-    NRF_LOG_RAW_INFO(" time adv %i....\r\n", APP_ADV_DURATION);
+    NRF_LOG_RAW_INFO("TIEMPO ADV %i [ms]\r\n", APP_ADV_DURATION);
     NRF_LOG_FLUSH();
 
     return error_code;

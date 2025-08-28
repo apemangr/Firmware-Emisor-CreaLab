@@ -1551,20 +1551,20 @@ static void advertising_init(void)
     uint16_t Pista1 = GET_MEASURE_SENSOR(Circuito_1, Gain_Circuit); // Circuito_List[0]
     if (Pista1 > 0xf339)
         Pista1 = 0x0;
-    NRF_LOG_RAW_INFO("valor circuito 1 %u \r\n", Pista1);
+    NRF_LOG_RAW_INFO("Valor ADC1 -> %u \r\n", Pista1);
     NRF_LOG_FLUSH();
     uint16_t Pista2 =
         GET_MEASURE_SENSOR(Circuito_2, Gain_Circuit); // Circuito_List[0]  NRF_SAADC_INPUT_AIN2
     if (Pista2 > 0xf339)
         Pista2 = 0x0;
-    NRF_LOG_RAW_INFO("valor circuito 2 %u \r\n", Pista2);
+    NRF_LOG_RAW_INFO("Valor ADC2 -> %u \r\n", Pista2);
     NRF_LOG_FLUSH();
     bsp_board_led_off(3);
     nrf_delay_ms(30);
 
     Value_Wear = (Sensor_Analisys(Pista1, Pista2));
 
-    NRF_LOG_RAW_INFO("Tipo dispositivo %x\r\n", Tipo_dispositivo);
+    NRF_LOG_RAW_INFO("\nTipo dispositivo %x\r\n", Tipo_dispositivo);
     NRF_LOG_FLUSH();
     NRF_LOG_RAW_INFO("mm step resistor " NRF_LOG_FLOAT_MARKER "\r\n",
                      NRF_LOG_FLOAT(Step_of_resistor));
@@ -1572,9 +1572,9 @@ static void advertising_init(void)
     NRF_LOG_RAW_INFO("mm totales cortados del sensor " NRF_LOG_FLOAT_MARKER "\r\n",
                      NRF_LOG_FLOAT(Value_Wear));
     NRF_LOG_FLUSH();
-    NRF_LOG_RAW_INFO("offset: n° resistencias cortadas %d \r\n", Flash_array.Offset_sensor_cut);
+    NRF_LOG_RAW_INFO("offset: numero resistencias cortadas %d \r\n", Flash_array.Offset_sensor_cut);
     NRF_LOG_FLUSH();
-    NRF_LOG_RAW_INFO("offset: mm placa-perno %d \r\n", (Offset_desgaste - 128));
+    NRF_LOG_RAW_INFO("offset: mm placa-perno %d \r\n\n", (Offset_desgaste - 128));
     NRF_LOG_FLUSH();
 
     if (History_Position == 0)
@@ -1657,7 +1657,7 @@ static void advertising_init(void)
 
         if (Another_Value)
         {
-            NRF_LOG_RAW_INFO("GRABACION HISTORIA posision/total %d/%d \r\n", History_Position,
+            NRF_LOG_RAW_INFO("\nGRABACION HISTORIA posicion/total %d/%d \r\n", History_Position,
                              Size_Memory_History);
             NRF_LOG_FLUSH();
 
@@ -1704,7 +1704,7 @@ static void advertising_init(void)
             ret_code_t rc = set_history_record(History_Position, &new_record);
             if (rc != NRF_SUCCESS)
             {
-                NRF_LOG_ERROR("Error guardando historial: %d", rc);
+                NRF_LOG_DEBUG("\nError guardando historial: %d\n", rc);
             }
             // History_Position y Flash_array.last_history se actualizan automáticamente
 

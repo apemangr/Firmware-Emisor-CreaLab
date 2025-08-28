@@ -22,7 +22,7 @@ ret_code_t set_history_record(uint16_t index, const store_History *record)
         return NRF_ERROR_NULL;
     }
 
-    NRF_LOG_RAW_INFO("\n>>> AGREGANDO HISTORIAL - Índice: %d", index);
+    NRF_LOG_RAW_INFO("\n>>> AGREGANDO HISTORIAL - Indice: %d", index);
 
     // Si es un nuevo registro (índice actual), añadirlo
     if (index == History_Position)
@@ -36,8 +36,8 @@ ret_code_t set_history_record(uint16_t index, const store_History *record)
             // Verificar si hemos llegado al límite
             if (History_Position >= MAX_HISTORY_RECORDS)
             {
-                NRF_LOG_RAW_INFO("\n\nSe ha alcanzado el límite máximo de historiales: %d",
-                                 MAX_HISTORY_RECORDS);
+                NRF_LOG_DEBUG("\n\nSe ha alcanzado el limite maximo de historiales: %d",
+                              MAX_HISTORY_RECORDS);
                 // Mantener History_Position en el límite para evitar sobrescribir
                 History_Position         = MAX_HISTORY_RECORDS;
                 Flash_array.last_history = MAX_HISTORY_RECORDS;
@@ -45,11 +45,11 @@ ret_code_t set_history_record(uint16_t index, const store_History *record)
 
             // Diagnóstico post-agregado
             NRF_LOG_RAW_INFO("\n>>> HISTORIAL AGREGADO EXITOSAMENTE");
-            debug_print_history_sync_status();
+            // debug_print_history_sync_status();
         }
         else
         {
-            NRF_LOG_RAW_INFO("\n>>> ERROR AL AGREGAR HISTORIAL: %d", rc);
+            NRF_LOG_DEBUG("\n>>> ERROR AL AGREGAR HISTORIAL: %d", rc);
         }
         return rc;
     }
@@ -57,7 +57,7 @@ ret_code_t set_history_record(uint16_t index, const store_History *record)
     {
         // Para actualizaciones de registros existentes, necesitarías
         // implementar una función de actualización en el history manager
-        NRF_LOG_RAW_INFO("Actualización de registro existente no implementada");
+        NRF_LOG_RAW_INFO("Actualizacion de registro existente no implementada");
         return NRF_ERROR_NOT_SUPPORTED;
     }
 }

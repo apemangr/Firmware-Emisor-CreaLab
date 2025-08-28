@@ -81,8 +81,10 @@ int         main(void)
 
     Reset_Line_Step(1);
 
-    NRF_LOG_RAW_INFO("**** INICIO DEL PROGRAMA **************************** 04 **  \r\n");
+    NRF_LOG_RAW_INFO("**** INICIO DEL PROGRAMA **************************** \r\n");
     NRF_LOG_RAW_INFO("**** STEP DEL RESET %i \r\n", (Reset_Index));
+    NRF_LOG_RAW_INFO("**** Version %d.%d.%d\r\n", Flash_array.Version[0], Flash_array.Version[1],
+                     Flash_array.Version[2]);
 
     NRF_LOG_FLUSH();
     Reset_Line_Step(2);
@@ -180,8 +182,8 @@ int         main(void)
     History_Position = Flash_array.last_history;
 
     // DIAGNÓSTICO: Verificar sincronización después de la inicialización
-    NRF_LOG_RAW_INFO("\n=== DIAGNOSTICO POST-INICIALIZACION ===");
-    debug_print_history_sync_status();
+    // NRF_LOG_RAW_INFO("\n=== DIAGNOSTICO POST-INICIALIZACION ===");
+    // debug_print_history_sync_status();
 
     // Leer el último historial usando el nuevo sistema
     if (History_Position > 0)
@@ -221,7 +223,7 @@ int         main(void)
     t.month  = Flash_array.month;
     t.year   = Flash_array.year;
 
-    NRF_LOG_RAW_INFO("mm step resistor recien configurado " NRF_LOG_FLOAT_MARKER "\r\n",
+    NRF_LOG_RAW_INFO("\nEspacio entre las resistencias: " NRF_LOG_FLOAT_MARKER "\r\n",
                      NRF_LOG_FLOAT(Step_of_resistor));
     Counter_restart();
     Fstorage_Erase_Writing();
