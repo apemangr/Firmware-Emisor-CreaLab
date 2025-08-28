@@ -30,4 +30,7 @@ ret_code_t clear_all_history(void);
 // Función para obtener el total de registros
 uint16_t get_total_history_count(void);
 
+// Función de diagnóstico para verificar sincronización
+void debug_print_history_sync_status(void);
+
 #endif // __HISTORY_ADAPTER_H
